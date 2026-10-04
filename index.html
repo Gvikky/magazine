@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#090807">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
 
 <title>15 October 2002 — Time Capsule</title>
 
@@ -673,6 +678,247 @@ body.login-locked #magBook,body.login-locked #magControls,body.login-locked #mag
 @media(max-width:600px){.horror-card{padding:28px 20px}.wish{font-size:11px}.horror-web{display:none}.horror-corner{font-size:18px}}
 </style>
 
+
+<style id="mobile-fullscreen-final">
+/* =========================================================
+   FINAL MOBILE FULLSCREEN OPTIMIZATION
+   - Edge-to-edge magazine
+   - Uses dynamic/small/large viewport units safely
+   - Respects camera/safe-area cutouts
+   - Prevents page zoom and accidental body scrolling
+   ========================================================= */
+
+html {
+  width:100%;
+  min-width:100%;
+  height:100%;
+  min-height:100%;
+  margin:0;
+  padding:0;
+  background:#090807;
+  overscroll-behavior:none;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+
+body {
+  width:100%;
+  min-width:100%;
+  height:100%;
+  min-height:100%;
+  margin:0;
+  padding:0;
+  overflow:hidden !important;
+  overscroll-behavior:none;
+  touch-action:manipulation;
+}
+
+@media (max-width:700px) {
+  #magBook {
+    position:fixed !important;
+    inset:0 !important;
+    left:0 !important;
+    top:0 !important;
+    width:100vw !important;
+    height:100vh !important;
+    height:100svh !important;
+    height:100dvh !important;
+    max-width:none !important;
+    max-height:none !important;
+    min-width:100vw !important;
+    min-height:100dvh !important;
+    margin:0 !important;
+    padding:0 !important;
+    transform:none !important;
+    border-radius:0 !important;
+    perspective:1800px !important;
+    overflow:visible !important;
+  }
+
+  .magPage {
+    position:absolute !important;
+    inset:0 !important;
+    width:100vw !important;
+    height:100vh !important;
+    height:100svh !important;
+    height:100dvh !important;
+    min-width:100vw !important;
+    min-height:100dvh !important;
+    max-width:none !important;
+    max-height:none !important;
+    margin:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+  }
+
+  .magPage.cover {
+    overflow:hidden !important;
+  }
+
+  .magPage.cover::before {
+    inset:0 !important;
+    width:100% !important;
+    height:100% !important;
+    background-size:cover !important;
+    background-position:center center !important;
+  }
+
+  .magInner {
+    width:100% !important;
+    min-width:0 !important;
+    min-height:100% !important;
+    padding:
+      max(24px, env(safe-area-inset-top))
+      max(18px, env(safe-area-inset-right))
+      max(72px, env(safe-area-inset-bottom))
+      max(18px, env(safe-area-inset-left)) !important;
+  }
+
+  .magBody {
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    font-size:clamp(12px, 3.4vw, 15px) !important;
+    line-height:1.65 !important;
+    overflow:visible !important;
+  }
+
+  .magTitle {
+    font-size:clamp(30px, 10vw, 46px) !important;
+    line-height:1.02 !important;
+    max-width:100% !important;
+  }
+
+  .magIntro {
+    max-width:100% !important;
+    font-size:clamp(11px, 3.2vw, 14px) !important;
+  }
+
+  .magFooter {
+    margin-top:24px !important;
+    padding-bottom:max(8px, env(safe-area-inset-bottom)) !important;
+  }
+
+  #magControls {
+    left:50% !important;
+    bottom:max(8px, env(safe-area-inset-bottom)) !important;
+    transform:translateX(-50%) !important;
+    max-width:calc(100vw - 20px) !important;
+    padding:6px 9px !important;
+    gap:8px !important;
+  }
+
+  .magBtn {
+    width:40px !important;
+    height:40px !important;
+    flex:0 0 40px;
+  }
+
+  #magCount {
+    min-width:76px !important;
+    font-size:9px !important;
+  }
+
+  #magHint {
+    top:max(7px, env(safe-area-inset-top)) !important;
+    max-width:92vw !important;
+    text-align:center;
+  }
+
+  #pdfDownload {
+    right:max(8px, env(safe-area-inset-right)) !important;
+    bottom:max(58px, calc(env(safe-area-inset-bottom) + 50px)) !important;
+  }
+
+  #birthdayGate {
+    width:100vw !important;
+    height:100vh !important;
+    height:100svh !important;
+    height:100dvh !important;
+    padding:
+      max(12px, env(safe-area-inset-top))
+      max(12px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left)) !important;
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .horror-card {
+    width:min(94vw, 570px) !important;
+    max-height:calc(100dvh - 24px) !important;
+    overflow-y:auto !important;
+    padding:24px 18px 22px !important;
+  }
+
+  .horror-title {
+    font-size:clamp(2.7rem, 13vw, 5rem) !important;
+  }
+
+  #ghostShock {
+    top:max(10px, env(safe-area-inset-top)) !important;
+    right:max(10px, env(safe-area-inset-right)) !important;
+    width:calc(100vw - 20px) !important;
+    max-width:none !important;
+  }
+
+  .ghost-wrap {
+    grid-template-columns:82px 1fr !important;
+    gap:9px !important;
+    padding:12px 10px !important;
+  }
+
+  .ghost-svg {
+    width:80px !important;
+    height:105px !important;
+  }
+
+  .ghost-message {
+    font-size:clamp(1.15rem, 7vw, 2rem) !important;
+  }
+
+  .ghost-wrap:before {
+    left:92px !important;
+    font-size:7px !important;
+  }
+}
+
+/* Android/Chrome fullscreen class: remove every browser-layout margin. */
+html.app-fullscreen,
+html.app-fullscreen body,
+html.app-fullscreen #magBook,
+html.app-fullscreen .magPage {
+  width:100% !important;
+  height:100% !important;
+  min-width:100% !important;
+  min-height:100% !important;
+  margin:0 !important;
+  border-radius:0 !important;
+}
+
+/* Landscape phones: keep the magazine edge-to-edge rather than shrinking it. */
+@media (max-width:700px) and (orientation:landscape) {
+  .magPage,
+  #magBook {
+    width:100vw !important;
+    height:100dvh !important;
+  }
+
+  .magInner {
+    padding:20px 28px 62px !important;
+  }
+
+  .magTitle {
+    font-size:clamp(25px, 7vw, 40px) !important;
+  }
+}
+</style>
+
 </head>
 
 <body class="login-locked">
@@ -747,11 +993,44 @@ body.login-locked #magBook,body.login-locked #magControls,body.login-locked #mag
     window.speechSynthesis.speak(voice);
   }
 
+
+  function enterMobileFullscreen(){
+    const root = document.documentElement;
+    root.classList.add('app-fullscreen');
+
+    // Fullscreen APIs require a user gesture. The login button is that gesture.
+    const el = document.documentElement;
+    const request =
+      el.requestFullscreen ||
+      el.webkitRequestFullscreen ||
+      el.msRequestFullscreen;
+
+    if (request) {
+      try {
+        const result = request.call(el);
+        if (result && typeof result.catch === 'function') result.catch(()=>{});
+      } catch (_) {}
+    }
+  }
+
+  function syncFullscreenClass(){
+    const active =
+      !!document.fullscreenElement ||
+      !!document.webkitFullscreenElement ||
+      !!document.msFullscreenElement;
+
+    document.documentElement.classList.toggle('app-fullscreen', active);
+  }
+
+  document.addEventListener('fullscreenchange', syncFullscreenClass);
+  document.addEventListener('webkitfullscreenchange', syncFullscreenClass);
+
   form.addEventListener('submit',function(e){
     e.preventDefault();
     const ok=user.value.trim()===VALID_USER && pass.value===VALID_PASS;
     if(ok){
       error.style.display='none';
+      enterMobileFullscreen();
       gate.classList.add('hidden');
       document.body.classList.remove('login-locked');
       window.setTimeout(()=>gate.remove(),850);
@@ -772,6 +1051,17 @@ body.login-locked #magBook,body.login-locked #magControls,body.login-locked #mag
 
   // Keep the login deliberately simple: pressing Enter submits the form.
   user.focus();
+
+  // Mobile fallback: a real user touch can unlock fullscreen on browsers
+  // that don't expose fullscreen through the login transition.
+  document.addEventListener('touchend', function(){
+    if (window.innerWidth <= 700 &&
+        !document.fullscreenElement &&
+        !document.webkitFullscreenElement) {
+      enterMobileFullscreen();
+    }
+  }, {once:true, passive:true});
+
 })();
 </script>
 
