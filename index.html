@@ -1,863 +1,870 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#090807">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<title>15 October 2002 — Time Capsule</title>
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Libre+Baskerville:wght@400;700&family=Playfair+Display:wght@500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;700&family=Creepster&family=Nosifer&family=Special+Elite&display=swap');
-
-:root {
-  --paper: #f4efe4;
-  --ink: #1b1713;
-  --gold: #b68a43;
-  --red: #8c1d24;
-  --book-w: min(760px, 94vw);
-  --book-h: min(1040px, 88vh);
-}
-
-* { box-sizing: border-box; }
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: #17130f;
-  color: var(--ink);
-  font-family: 'Libre Baskerville', Georgia, serif;
-  touch-action: manipulation;
-}
-
-body:before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: .08;
-  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 4px);
-}
-
-/* Base Form Control Fix to prevent Android auto-zoom */
-input, select, textarea, button {
-  font-size: 16px !important;
-  touch-action: manipulation;
-}
-
-.nav, .hint { display: none !important; }
-
-#pageControls {
-  display: flex !important;
-  position: fixed;
-  z-index: 9999;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
-  align-items: center;
-  gap: 18px;
-  padding: 10px 14px;
-  background: rgba(12, 10, 8, .88);
-  border: 1px solid rgba(240, 211, 154, .5);
-  box-shadow: 0 10px 30px #0009;
-  border-radius: 4px;
-}
-#pageControls button {
-  display: grid !important;
-  place-items: center;
-  width: 48px;
-  height: 40px;
-  border: 1px solid rgba(240, 211, 154, .65);
-  background: #201a13;
-  color: #f4d79e;
-  font: 700 24px/1 Georgia, serif;
-  cursor: pointer;
-  border-radius: 2px;
-  transition: .2s;
-}
-#pageControls button:hover:not(:disabled) { background: #3a2d1c; transform: translateY(-1px); }
-#pageControls button:disabled { opacity: .3; cursor: not-allowed; }
-#bookIndex { min-width: 110px; text-align: center; color: #f4ead6; font: 700 12px/1.2 'Cinzel', serif; letter-spacing: 2px; }
-
-#magazine {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  perspective: 2200px;
-  background: radial-gradient(ellipse at center, #4a4034 0, #211c17 58%, #0e0b09 100%);
-  overflow: hidden;
-}
-#magazine:before {
-  content: '';
-  position: absolute;
-  width: calc(var(--book-w) + 34px);
-  height: calc(var(--book-h) + 34px);
-  border-radius: 3px;
-  background: #d5c6a9;
-  box-shadow: 0 35px 90px #000b, 0 0 0 1px #0b0907, 12px 0 0 #a38e6e, 16px 0 0 #d7c9ac;
-}
-
-.book-page {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: var(--book-w);
-  height: var(--book-h);
-  overflow: hidden;
-  background: var(--paper);
-  box-shadow: 0 25px 55px #0008, 0 0 0 1px #8b7a5f;
-  transform-origin: left center;
-  backface-visibility: hidden;
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-  isolation: isolate;
-  transition: transform .72s cubic-bezier(.77, 0, .18, 1), opacity .72s ease;
-}
-.book-page.active { visibility: visible; opacity: 1; pointer-events: auto; transform: rotateY(0deg); z-index: 20; }
-.book-page.prev { visibility: visible; opacity: 1; pointer-events: none; transform: rotateY(-105deg); z-index: 10; }
-.book-page.next { visibility: visible; opacity: 1; pointer-events: none; transform: rotateY(105deg); z-index: 10; }
-.book-page:before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(90deg, rgba(0,0,0,.24), transparent 9%, transparent 91%, rgba(0,0,0,.13)), linear-gradient(0deg, rgba(0,0,0,.25), transparent 12%, transparent 88%, rgba(255,255,255,.16));
-  mix-blend-mode: multiply;
-}
-.book-page:after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background: linear-gradient(90deg, rgba(255,255,255,.18), transparent 18%, transparent 82%, rgba(255,255,255,.08));
-}
-.book-page > * { position: relative; z-index: 3; }
-
-.hero.book-page {
-  display: flex;
-  align-items: flex-end;
-  padding: 6% 8%;
-  color: white;
-  background: linear-gradient(90deg, rgba(0, 0, 0, .76), rgba(0, 0, 0, .08)), url('https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1400&q=85') center/cover no-repeat;
-}
-.hero.book-page .hero-inner { max-width: 100%; width: 100%; }
-.hero.book-page .eyebrow { font: 700 .78rem 'Cinzel', serif; letter-spacing: 4px; color: #f0d39a; }
-.hero.book-page h1 { font: 800 clamp(3.2rem, 9vw, 8rem)/.82 'Cinzel', serif; margin: 18px 0; text-shadow: 0 5px 22px #000; }
-.hero.book-page h1 span { display: block; font-size: .35em; letter-spacing: 4px; margin-top: 18px; }
-.hero.book-page .hero-subtitle { font: 700 clamp(.8rem, 1.7vw, 1.05rem) 'Noto Sans Tamil', sans-serif; line-height: 1.7; }
-.hero.book-page .scroll-btn { display: none; }
-
-section.book-page { padding: 0 !important; min-height: 0 !important; display: block; background-size: cover !important; background-position: center !important; background-repeat: no-repeat !important; }
-section.book-page .section-frame { height: 100%; padding: 9% 9% 7%; overflow: auto; position: relative; z-index: 4; background: linear-gradient(90deg, rgba(12, 10, 8, .82) 0, rgba(12, 10, 8, .63) 45%, rgba(12, 10, 8, .30) 100%); color: #fff; }
-section.book-page .section-frame::-webkit-scrollbar { width: 5px; }
-section.book-page .section-frame::-webkit-scrollbar-thumb { background: #d2b67c; }
-
-.section-title { margin: 0 0 26px !important; text-align: left !important; }
-.section-title .number { display: block !important; font: 700 .7rem 'Cinzel', serif !important; letter-spacing: 3px !important; color: #f0d39a !important; border-bottom: 1px solid rgba(240, 211, 154, .5); padding-bottom: 9px; }
-.section-title h2 { display: block !important; color: #fff !important; font: 800 clamp(2rem, 5vw, 4.4rem)/.95 'Playfair Display', serif !important; margin: 16px 0 10px !important; text-shadow: 0 3px 14px #000; }
-.section-title p { display: block !important; color: #f2ede3 !important; font-size: .9rem !important; line-height: 1.65 !important; max-width: 600px; }
-
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.card, .boundary-box, .info-box, .zodiac-info, .movie-card, .news-card, .tech-card { background: rgba(18, 15, 12, .78) !important; border: 1px solid rgba(240, 211, 154, .42) !important; box-shadow: 0 12px 25px #0005 !important; padding: 18px !important; color: #fff !important; backdrop-filter: blur(2px); }
-.card h3, .movie-card h3, .news-card h3, .tech-card h3 { font: 700 1.15rem 'Playfair Display', serif !important; color: #f4d79e !important; margin-top: 0; }
-.card p, .card li, .info-box p, .boundary-box p { color: #f2ede3 !important; line-height: 1.65 !important; font-size: .84rem !important; }
-.badge { color: #1a130b !important; background: #e5c787 !important; padding: 5px 9px !important; font-size: .62rem !important; letter-spacing: 1px !important; }
-
-.timeline { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
-.event { width: 100% !important; margin: 0 !important; }
-.event-head { background: rgba(18, 15, 12, .78) !important; border: 1px solid rgba(240, 211, 154, .42) !important; padding: 15px !important; box-shadow: 0 10px 22px #0005 !important; }
-.event-time { font: 700 .62rem 'Cinzel', serif !important; color: #e8c984 !important; letter-spacing: 1.5px; }
-.event-title { font: 700 1rem 'Playfair Display', serif !important; color: #fff !important; margin: 8px 0; }
-.event-detail { color: #eee !important; line-height: 1.55 !important; font-size: .75rem !important; max-height: 0; overflow: hidden; transition: max-height .35s ease, padding .35s ease; }
-.event.open .event-detail { max-height: 240px; padding-top: 8px; }
-
-.moon-stage { min-height: 330px !important; background: rgba(0, 0, 0, .22); display: flex; align-items: center; justify-content: center; }
-.moon-orbit { width: 290px !important; height: 290px !important; }
-.moon-label { background: rgba(12, 10, 8, .76); padding: 18px !important; border: 1px solid rgba(240, 211, 154, .4); color: #fff; }
-.zodiac-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: center; }
-.zodiac-wheel { width: min(330px, 100%) !important; }
-.tn-map { width: 190px !important; height: 245px !important; }
-
-.music-player { background: #0b0908 !important; border: 5px solid #594a35 !important; padding: 7px !important; }
-.music-player iframe { width: 100% !important; }
-.song-buttons { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-.song-btn { background: #17120e !important; border: 1px solid #b89558 !important; color: #f0d39a !important; padding: 12px !important; }
-.song-btn small { display: block; color: #eee; margin-top: 5px; }
-
-.snapshot-clock { font-size: clamp(3rem, 8vw, 6rem) !important; color: #f0d39a !important; }
-.ticker-wrap { display: none !important; }
-.footer-title { font: 800 3rem 'Cinzel', serif !important; color: #f0d39a; }
-.book-page footer { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 10%; background: linear-gradient(rgba(0,0,0,.6), rgba(0,0,0,.8)), url('https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1400&q=85') center/cover; color: #fff; }
-.book-page footer p { max-width: 560px; line-height: 1.8; }
-.book-page footer .footer-title { font-size: clamp(2.4rem, 7vw, 5rem); }
-
-.book-page[data-id="timeline"] { background-image: url('https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1400&q=85') !important; }
-.book-page[data-id="moon-section"] { background-image: url('https://images.unsplash.com/photo-1534791547706-9d7e6f5e7e2a?auto=format&fit=crop&w=1400&q=85') !important; }
-.book-page[data-id="zodiac"] { background-image: url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1400&q=85') !important; }
-.book-page[data-id="tamilnadu"] { background-image: url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1400&q=85') !important; }
-.book-page[data-id="politics"] { background-image: url('https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?auto=format&fit=crop&w=1400&q=85') !important; }
-.book-page[data-id="kollywood"] { background-image: url('https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1400&q=85') !important; }
-.book-page[data-id="music"] { background-image: url('https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1400&q=85') !important; }
-.book-page[data-id="internet"] { background-image: url('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1400&q=85') !important; }
-.book-page[data-id="beauty"] { background-image: url('https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1400&q=85') !important; }
-.book-page[data-id="snapshot"] { background-image: url('https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=1400&q=85') !important; }
-.book-page[data-id="technology"] { background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1400&q=85') !important; }
-.book-page[data-id="news"] { background-image: url('https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1400&q=85') !important; }
-.book-page.archive-page { background-image: url('https://images.unsplash.com/photo-1456324504439-367cee3b3c32?auto=format&fit=crop&w=1400&q=85') !important; }
-
-.page-number { position: absolute; right: 7%; bottom: 3.2%; z-index: 8; font: 700 .65rem 'Cinzel', serif; letter-spacing: 2px; color: #f0d39a; }
-.book-page:not(.hero) .section-frame:after { content: ''; position: fixed; left: 7%; bottom: 3.2%; height: 1px; width: 55%; background: rgba(240, 211, 154, .35); }
-
-#bookControls { position: fixed; z-index: 1000; bottom: 18px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; }
-.book-control { border: 1px solid #d1ad67; background: rgba(17, 13, 9, .88); color: #f5dca3; width: 46px; height: 46px; border-radius: 2px; font: 700 1.15rem 'Cinzel', serif; cursor: pointer; box-shadow: 0 8px 25px #0007; }
-.book-control:hover { background: #8b1d24; }
-.book-index { color: #f5dca3; font: 700 .68rem 'Cinzel', serif; letter-spacing: 2px; min-width: 90px; text-align: center; }
-#bookTitle { position: fixed; z-index: 1000; top: 18px; left: 50%; transform: translateX(-50%); font: 700 .64rem 'Cinzel', serif; letter-spacing: 3px; color: #f1d79f; white-space: nowrap; }
-
-/* CLEAN PHYSICAL MAGAZINE */
-body > .nav, body > header.hero, body > section, body > footer { display: none !important; }
-#magBook { position: relative; width: min(720px, 94vw); height: min(900px, 86vh); margin: auto; top: 50%; transform: translateY(-50%); perspective: 2200px; }
-.magPage { position: absolute; inset: 0; border-radius: 2px 5px 5px 2px; overflow: hidden; background: #eee4d1; box-shadow: 0 20px 60px rgba(0, 0, 0, .6), inset -10px 0 0 rgba(0, 0, 0, .05); opacity: 0; visibility: hidden; transform: translateX(30px) rotateY(-8deg); transform-origin: left center; transition: transform .7s cubic-bezier(.2, .75, .25, 1), opacity .35s, visibility .35s; z-index: 1; }
-.magPage.active { opacity: 1; visibility: visible; transform: translateX(0) rotateY(0); z-index: 5; }
-.magPage.exitLeft { opacity: 0; visibility: hidden; transform: translateX(-70px) rotateY(10deg); }
-.magPage.exitRight { opacity: 0; visibility: hidden; transform: translateX(70px) rotateY(-10deg); }
-.magPage:before { content: ""; position: absolute; inset: 0; background-image: var(--photo); background-size: cover; background-position: center; filter: saturate(.9) contrast(.98); z-index: 0; }
-.magPage:after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10, 7, 5, .86) 0%, rgba(10, 7, 5, .68) 42%, rgba(10, 7, 5, .28) 100%), linear-gradient(0deg, rgba(10, 7, 5, .7), transparent 50%); z-index: 1; }
-
-.magInner { position: relative; z-index: 2; height: 100%; padding: 40px 24px; color: #fff; display: flex; flex-direction: column; width: 100%; box-sizing: border-box; }
-.magKicker { font: 700 12px "Cinzel", serif; letter-spacing: 3px; color: #f0d59b; text-transform: uppercase; margin-bottom: 14px; }
-.magTitle { font: 800 clamp(28px, 5vw, 58px)/.98 "Playfair Display", Georgia, serif; margin: 0 0 12px; text-shadow: 0 2px 12px rgba(0, 0, 0, .4); }
-.magIntro { font: italic 14px/1.65 Georgia, serif; color: #f6ead5; max-width: 100%; margin: 0 0 18px; }
-.magBody { background: rgba(18, 13, 10, .76); border: 1px solid rgba(255, 255, 255, .18); padding: 18px; backdrop-filter: blur(3px); border-radius: 2px; overflow: auto; max-height: calc(100% - 170px); font-size: 14px; line-height: 1.75; width: 100%; }
-.magBody::-webkit-scrollbar { width: 5px; }
-.magBody::-webkit-scrollbar-thumb { background: #c9a96b; }
-.magBody * { max-width: 100% !important; overflow-wrap: anywhere; box-sizing: border-box; }
-.magBody h1, .magBody h2, .magBody h3 { font-family: "Playfair Display", serif; color: #f7dda6; line-height: 1.2; margin: 12px 0 8px; }
-.magBody p, .magBody li { margin: 7px 0; }
-.magBody .section-title, .magBody .number { display: none !important; }
-.magBody .card, .magBody .info-box, .magBody .boundary-box, .magBody .movie-card, .magBody .news-card { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 7px 0 !important; margin: 0 !important; }
-.magBody .grid { display: block !important; }
-.magBody .grid > * { margin-bottom: 13px !important; }
-.magBody .moon-stage { transform: scale(.7); transform-origin: top center; margin-bottom: -90px; }
-.magBody .music-player iframe { width: 100%; height: 240px; }
-.magFooter { position: absolute; left: 24px; right: 24px; bottom: 18px; display: flex; justify-content: space-between; font: 700 9px "Cinzel", serif; letter-spacing: 2px; color: #e5c98d; }
-
-.cover .magInner { justify-content: flex-end; padding-bottom: 75px; }
-.cover .magTitle { font-size: clamp(38px, 8vw, 86px); }
-.cover .magBody { background: transparent; border: 0; padding: 0; max-height: none; overflow: visible; }
-.cover:after { background: linear-gradient(0deg, rgba(5, 4, 3, .94), rgba(5, 4, 3, .08) 72%); }
-.cover .magKicker { font-size: 14px; }
-
-#magControls { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 50; display: flex; align-items: center; gap: 18px; background: rgba(15, 12, 10, .88); padding: 8px 14px; border: 1px solid rgba(240, 213, 155, .35); border-radius: 30px; box-shadow: 0 8px 30px #0008; }
-.magBtn { width: 42px; height: 42px; border-radius: 50%; border: 1px solid #d9bd80; background: #221b15; color: #f3dca8; font-size: 29px; line-height: 1; cursor: pointer; }
-.magBtn:disabled { opacity: .3; cursor: default; }
-#magCount { min-width: 95px; text-align: center; color: #f1d7a0; font: 700 11px "Cinzel", serif; letter-spacing: 2px; }
-#magHint { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 40; color: #f1dfbf; font: 600 10px "Cinzel", serif; letter-spacing: 2px; opacity: .75; }
-
-/* FIXED RESPONSIVE MAGBOOK LAYOUT & MOBILE CUT-OFF ISSUE ON PAGE 1 */
-#magBook {
-  width: min(720px, 94vw);
-  height: min(960px, 90vh);
-  margin: 0;
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  perspective: 2400px;
-  transform-style: preserve-3d;
-}
-
-.magPage {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 3px 6px 6px 3px;
-  overflow: hidden;
-  background: #eee4d1;
-  opacity: 1;
-  visibility: hidden;
-  pointer-events: none;
-  transform: rotateY(0deg);
-  transform-origin: left center;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  transition: transform .68s cubic-bezier(.22, .61, .36, 1), box-shadow .68s ease;
-  will-change: transform;
-  box-shadow: 0 28px 70px rgba(0, 0, 0, .62), inset -10px 0 14px rgba(0, 0, 0, .08);
-}
-
-.magPage.active {
-  visibility: visible;
-  opacity: 1;
-  pointer-events: auto;
-  transform: rotateY(0deg);
-  z-index: 20;
-}
-
-.magPage.turn-forward {
-  visibility: visible;
-  opacity: 1;
-  pointer-events: none;
-  transform: rotateY(-180deg);
-  z-index: 30;
-  box-shadow: -18px 25px 55px rgba(0, 0, 0, .46), inset 12px 0 18px rgba(0, 0, 0, .20);
-}
-
-.magPage.turn-back {
-  visibility: visible;
-  opacity: 1;
-  pointer-events: none;
-  transform: rotateY(180deg);
-  z-index: 30;
-  box-shadow: 18px 25px 55px rgba(0, 0, 0, .46), inset -12px 0 18px rgba(0, 0, 0, .20);
-}
-
-.magPage.flip-under {
-  visibility: visible;
-  opacity: 1;
-  pointer-events: none;
-  transform: rotateY(0deg);
-  z-index: 10;
-}
-
-.magPage, .magPage::before, .magPage::after {
-  transform-style: preserve-3d;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-
-.magPage::before { transition: opacity .68s ease; }
-.magPage::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 8;
-  background: linear-gradient(90deg, rgba(255, 255, 255, .18) 0%, transparent 12%, transparent 78%, rgba(0, 0, 0, .22) 100%), linear-gradient(0deg, rgba(0, 0, 0, .16), transparent 18%, transparent 82%, rgba(255, 255, 255, .08));
-  mix-blend-mode: soft-light;
-  will-change: opacity, transform;
-}
-
-.magPage.moonPage .moon-stage { display: none !important; }
-
-.historical-moon {
-  width: min(430px, 82%);
-  aspect-ratio: 1;
-  margin: 8px auto 18px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #000;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, .12), 0 18px 50px rgba(0, 0, 0, .58), 0 0 55px rgba(255, 255, 255, .10);
-}
-.historical-moon img { display: block; width: 100%; height: 100%; object-fit: cover; }
-
-.magInner { min-width: 0; min-height: 0; }
-.magBody { min-width: 0; min-height: 0; overflow: auto; scrollbar-gutter: stable; }
-.magBody * { max-width: 100%; box-sizing: border-box; overflow-wrap: anywhere; word-break: normal; }
-.magTitle, .magIntro, .magKicker { overflow-wrap: anywhere; }
-
-.magPage {
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
-.magInner {
-  min-height: 100%;
-  height: auto !important;
-  display: flex;
-  flex-direction: column;
-}
-.magBody {
-  overflow: visible !important;
-  max-height: none !important;
-  flex: 0 0 auto;
-}
-.magFooter {
-  position: relative !important;
-  left: auto !important; right: auto !important; bottom: auto !important;
-  margin-top: 28px;
-  padding-bottom: 4px;
-}
-
-.magPage.cover:before {
-  background-image: linear-gradient(135deg, rgba(5, 7, 18, .78) 0%, rgba(15, 10, 30, .34) 48%, rgba(0, 0, 0, .12) 100%), var(--photo);
-  filter: saturate(1.2) contrast(1.05) brightness(.9);
-}
-.magPage.cover:after {
-  background: radial-gradient(circle at 78% 20%, rgba(255, 211, 110, .28), transparent 26%), linear-gradient(0deg, rgba(2, 3, 8, .95), rgba(5, 5, 18, .16) 72%);
-}
-.cover .magKicker { color: #ffd978 !important; text-shadow: 0 2px 10px #000; }
-.cover .magTitle {
-  background: linear-gradient(90deg, #fff6d5 0%, #ffd36e 28%, #ff9b71 55%, #cbb8ff 82%, #fff 100%);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  text-shadow: 0 4px 24px rgba(0, 0, 0, .48);
-}
-.cover .magIntro { color: #fff1c9 !important; text-shadow: 0 2px 10px #000; }
-
-#pdfDownload {
-  position: fixed; right: 18px; bottom: 18px; z-index: 80;
-  border: 1px solid #e4c681; background: rgba(18, 13, 9, .92);
-  color: #f8dfaa; padding: 11px 15px; border-radius: 4px;
-  font: 700 10px 'Cinzel', serif; letter-spacing: 1.5px; cursor: pointer;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, .45);
-}
-#pdfDownload:hover { background: #6f1720; }
-#pdfNotice {
-  position: fixed; left: 50%; bottom: 76px; transform: translateX(-50%);
-  z-index: 90; display: none; max-width: min(92vw, 520px);
-  padding: 10px 14px; border: 1px solid rgba(240, 213, 155, .5);
-  background: rgba(12, 9, 7, .94); color: #f7ead1; text-align: center;
-  font: 600 11px/1.5 Georgia, serif; border-radius: 4px;
-}
-
-.magPage.cover { background: #000 !important; padding: 0 !important; }
-.magPage.cover::before {
-  content: "" !important;
-  position: absolute !important;
-  inset: 0 !important;
-  z-index: 0 !important;
-  background-image: var(--photo) !important;
-  background-size: cover !important;
-  background-position: center center !important;
-  background-repeat: no-repeat !important;
-  filter: none !important;
-}
-.magPage.cover::after { display: none !important; }
-.magPage.cover .magInner { display: none !important; }
-
-.magPage { background: #120f0c !important; overflow-x: hidden !important; overflow-y: auto !important; }
-.magPage::before { display: none !important; }
-
-.magInner {
-  position: relative !important;
-  z-index: 2 !important;
-  min-height: 100% !important;
-  height: auto !important;
-  isolation: isolate;
-  background-color: #16110d !important;
-  background-image: linear-gradient(180deg, rgba(8,6,5,.48) 0%, rgba(8,6,5,.22) 42%, rgba(8,6,5,.55) 100%), var(--photo), var(--photo2);
-  background-size: 100% 100%, 100% 68%, 100% 68%;
-  background-position: center, center top, center bottom;
-  background-repeat: no-repeat, no-repeat, no-repeat;
-  background-attachment: scroll, scroll, scroll;
-}
-.magInner::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(0,0,0,.05), transparent 18%, rgba(0,0,0,.12) 50%, rgba(0,0,0,.28) 100%);
-}
-
-.magBody, .magKicker, .magTitle, .magIntro, .magFooter { position: relative; z-index: 3; }
-
-#magBook {
-  width: min(720px, 92vw, 60vh) !important;
-  height: auto !important;
-  aspect-ratio: 2 / 3 !important;
-  max-height: 90vh !important;
-}
-.magPage.cover { overflow: hidden !important; background: #000 !important; }
-.magPage.cover::before {
-  display: block !important;
-  inset: 0 !important;
-  background-image: var(--photo) !important;
-  background-size: 100% 100% !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
-  filter: none !important;
-}
-.magPage.cover .magInner { display: none !important; }
-
-/* HORROR LOGIN GATE FIT FIXES FOR SMARTPHONES */
-#birthdayGate {
-  position: fixed; inset: 0; z-index: 999999;
-  display: flex; align-items: center; justify-content: center;
-  overflow-y: auto; isolation: isolate;
-  background: radial-gradient(circle at 50% 42%, rgba(86,0,8,.28), transparent 30%), radial-gradient(circle at 15% 80%, rgba(130,0,0,.13), transparent 28%), linear-gradient(135deg, #030303 0%, #090607 48%, #160407 100%);
-  color: #eee;
-  transition: opacity .8s ease, visibility .8s ease;
-  padding: 16px;
-}
-#birthdayGate.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-#birthdayGate::before {
-  content: ""; position: absolute; inset: -20%; opacity: .22; pointer-events: none;
-  background: repeating-linear-gradient(97deg, transparent 0 55px, rgba(255,255,255,.025) 56px 57px, transparent 58px 120px), repeating-linear-gradient(173deg, transparent 0 95px, rgba(170,0,0,.035) 96px 98px, transparent 99px 170px);
-  transform: rotate(-4deg);
-}
-#birthdayGate::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .12;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
-}
-
-.horror-card {
-  position: relative; z-index: 10;
-  width: min(440px, 92vw);
-  padding: clamp(20px, 5vw, 32px);
-  background: rgba(14, 8, 9, .92);
-  border: 1px solid #701118;
-  border-radius: 4px;
-  box-shadow: 0 0 35px rgba(0, 0, 0, .9), inset 0 0 20px rgba(120, 0, 0, .2);
-  text-align: center;
-  margin: auto;
-}
-
-.horror-title {
-  font-family: 'Nosifer', cursive, serif;
-  font-size: clamp(20px, 6vw, 32px);
-  color: #b3101c;
-  margin: 0 0 10px;
-  text-shadow: 0 0 10px #700;
-}
-
-.horror-sub {
-  font-family: 'Special Elite', monospace, serif;
-  font-size: 13px;
-  color: #d1b894;
-  margin-bottom: 22px;
-}
-
-.horror-field {
-  margin-bottom: 16px;
-  text-align: left;
-}
-
-.horror-field label {
-  display: block;
-  font-family: 'Special Elite', monospace;
-  font-size: 11px;
-  color: #a82029;
-  letter-spacing: 1px;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-}
-
-/* FIX: Input Prevent Auto-Zoom (Font 16px min) */
-.horror-field input {
-  width: 100%;
-  padding: 12px 14px;
-  background: #090506;
-  border: 1px solid #4a1216;
-  color: #f0e6d2;
-  font-size: 16px !important;
-  font-family: 'Special Elite', monospace;
-  border-radius: 2px;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.horror-field input:focus {
-  border-color: #a01822;
-  box-shadow: 0 0 8px rgba(160, 24, 34, .4);
-}
-
-.horror-btn {
-  width: 100%;
-  padding: 14px;
-  margin-top: 10px;
-  background: #6e0d13;
-  border: 1px solid #a31c26;
-  color: #f7e1b5;
-  font-family: 'Special Elite', monospace;
-  font-size: 16px !important;
-  letter-spacing: 2px;
-  cursor: pointer;
-  border-radius: 2px;
-  transition: background .2s ease;
-}
-.horror-btn:hover { background: #8f131b; }
-
-.horror-error {
-  color: #ff4747;
-  font-family: 'Special Elite', monospace;
-  font-size: 12px;
-  margin-top: 12px;
-  display: none;
-}
-
-@media (max-width: 700px) {
-  body { background: #090807 !important; }
-  #magBook {
-    width: 100vw !important;
-    height: 100dvh !important;
-    left: 0 !important;
-    top: 0 !important;
-    transform: none !important;
-    border-radius: 0;
-    perspective: 1800px;
-    max-height: none !important;
-    aspect-ratio: auto !important;
-  }
-  .magPage { width: 100vw !important; height: 100dvh !important; border-radius: 0; box-shadow: none; }
-  .magInner { padding: 24px 16px 60px !important; }
-  .magTitle { font-size: clamp(26px, 8vw, 42px); line-height: 1.05; }
-  .magIntro { font-size: 12px; line-height: 1.5; margin-bottom: 12px; }
-  .magBody { font-size: 12px; line-height: 1.6; padding: 14px !important; }
-  .magFooter { left: 16px; right: 16px; bottom: 10px; margin-top: 20px; }
-  .historical-moon { width: min(70vw, 290px); margin: 4px auto 14px; }
-  #magControls { bottom: max(10px, env(safe-area-inset-bottom)); gap: 10px; padding: 6px 10px; }
-  .magBtn { width: 40px; height: 40px; font-size: 27px; }
-  #magCount { min-width: 82px; font-size: 10px; }
-  #magHint { top: 9px; font-size: 8px; }
-  #pdfDownload { right: 10px; bottom: 10px; padding: 9px 10px; font-size: 8px; }
-}
-
-@media(max-width: 700px) and (orientation: landscape) {
-  #magBook, .magPage { width: 100vw !important; height: 100dvh !important; }
-}
-</style>
-</head>
-
-<body>
-
-<!-- BIRTHDAY HORROR LOGIN GATE -->
-<div id="birthdayGate">
-  <div class="horror-corner a">☠</div>
-  <div class="horror-corner b">☠</div>
-  <div class="horror-card">
-    <h1 class="horror-title">RESTRICTED ACCESS</h1>
-    <div class="horror-sub">ENTER CREDENTIALS TO UNLOCK TIME CAPSULE</div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Time Capsule Magazine | 15 October 2002</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Creepster&family=Inter:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,600;0,800;1,400&family=VT323&display=swap" rel="stylesheet">
     
-    <form id="horrorLoginForm" onsubmit="event.preventDefault(); validateLogin();">
-      <div class="horror-field">
-        <label for="gateName">ENTER YOUR NAME</label>
-        <input type="text" id="gateName" autocomplete="off" placeholder="Name" required>
-      </div>
-      
-      <div class="horror-field">
-        <label for="gateDob">ENTER DATE OF BIRTH</label>
-        <input type="text" id="gateDob" autocomplete="off" placeholder="DD/MM/YYYY" required>
-      </div>
-      
-      <button type="submit" class="horror-btn">UNLOCK CAPSULE</button>
-      <div id="horrorError" class="horror-error">ACCESS DENIED. INVALID CREDENTIALS.</div>
-    </form>
-  </div>
-</div>
+    <style>
+        /* Prevent auto-zoom on iOS/Android inputs by enforcing 16px font size */
+        input, select, textarea, button {
+            font-size: 16px !important;
+            touch-action: manipulation;
+        }
 
-<div id="magBook">
-  <!-- PAGE 1: COVER -->
-  <div class="magPage cover active" style="--photo:url('https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1400&q=85')">
-    <div class="magInner">
-      <div class="magKicker">Historical Archive</div>
-      <h1 class="magTitle">15 October 2002</h1>
-      <div class="magIntro">A complete time capsule capturing world events, culture, politics, and science on this exact day.</div>
-      <div class="magBody"></div>
-      <div class="magFooter">
-        <span>TIME CAPSULE</span>
-        <span>PAGE 1</span>
-      </div>
-    </div>
-  </div>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #090a0f;
+            color: #e2e8f0;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-  <!-- PAGE 2: TIMELINE -->
-  <div class="magPage" style="--photo:url('https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1400&q=85');--photo2:url('https://images.unsplash.com/photo-1534791547706-9d7e6f5e7e2a?auto=format&fit=crop&w=1400&q=85')">
-    <div class="magInner">
-      <div class="magKicker">Chronology</div>
-      <h2 class="magTitle">Day's Timeline</h2>
-      <div class="magIntro">Key global occurrences and events on October 15, 2002.</div>
-      <div class="magBody">
-        <div class="timeline">
-          <div class="event open">
-            <div class="event-head">
-              <div class="event-time">08:00 AM UTC</div>
-              <div class="event-title">Global News Wire Updates</div>
-              <div class="event-detail">International headlines report diplomatic summits, economic forecasts, and technological updates globally.</div>
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .font-creepster { font-family: 'Creepster', cursive; }
+        .font-retro { font-family: 'VT323', monospace; }
+
+        /* Custom Scrollbar for inner cards */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 9999px;
+        }
+
+        /* Newspaper & Vintage Texture background overlays */
+        .vintage-bg {
+            background-color: #111827;
+            background-image: radial-gradient(#1f2937 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+
+        .paper-card {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+
+        .gold-border {
+            border: 2px solid #d97706;
+            box-shadow: 0 0 15px rgba(217, 119, 6, 0.2);
+        }
+
+        /* Page transition effects */
+        .magazine-page {
+            display: none;
+            opacity: 0;
+            transform: scale(0.98);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+
+        .magazine-page.active {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Touch Swipe container prevents horizontal document drift */
+        .page-wrapper {
+            max-width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            .magazine-page { display: block !important; opacity: 1 !important; page-break-after: always; }
+            body { background: white; color: black; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-rose-500 selection:text-white">
+
+    <!-- LOGIN GATE OVERLAY -->
+    <div id="loginGate" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md overflow-y-auto">
+        <div class="relative w-full max-w-md p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-gray-900 via-purple-950 to-black border border-rose-900/60 shadow-2xl text-center my-auto">
+            
+            <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full bg-rose-950 border-2 border-rose-600 flex items-center justify-center shadow-lg shadow-rose-900/50">
+                <i class="fa-solid fa-skull text-3xl text-rose-500 animate-pulse"></i>
             </div>
-          </div>
-          <div class="event open">
-            <div class="event-head">
-              <div class="event-time">02:30 PM IST</div>
-              <div class="event-title">National Policy Statements</div>
-              <div class="event-detail">Government briefings and regional developments across India mark significant legislative milestones.</div>
+
+            <h2 class="mt-6 text-3xl font-creepster tracking-widest text-rose-500 drop-shadow-[0_2px_10px_rgba(244,63,94,0.6)]">
+                RESTRICTED VAULT
+            </h2>
+            <p class="text-xs uppercase tracking-widest text-gray-400 mt-1 mb-6">Enter Birth Passcode to Unlock 15 Oct 2002</p>
+
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs text-rose-300 uppercase tracking-wider mb-1 font-semibold">Birthday Star Name</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+                        <input type="text" id="loginName" required placeholder="Enter Name (e.g. Menaga)"
+                            class="w-full pl-10 pr-4 py-3 bg-gray-950/80 border border-rose-900/50 rounded-xl text-rose-100 placeholder-gray-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-rose-300 uppercase tracking-wider mb-1 font-semibold">Date of Birth (DD/MM/YYYY)</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-calendar-day absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+                        <input type="text" id="loginDOB" required placeholder="15/10/2002"
+                            class="w-full pl-10 pr-4 py-3 bg-gray-950/80 border border-rose-900/50 rounded-xl text-rose-100 placeholder-gray-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
+                    </div>
+                </div>
+
+                <div id="loginError" class="text-xs text-rose-400 font-medium hidden text-center bg-rose-950/40 py-2 rounded-lg border border-rose-900/40">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Access Denied! Hints: Name "Menaga", DOB "15/10/2002"
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-rose-700 to-purple-800 hover:from-rose-600 hover:to-purple-700 text-white font-bold tracking-wider uppercase rounded-xl shadow-lg shadow-rose-950/60 transition active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-key text-xs"></i> Open Time Vault
+                </button>
+            </form>
+
+            <div class="mt-6 pt-4 border-t border-gray-800/80 text-[11px] text-gray-500 flex justify-between items-center">
+                <span><i class="fa-solid fa-lock mr-1"></i> Encrypted Record</span>
+                <span>Vol 15.10.2002</span>
             </div>
-          </div>
         </div>
-      </div>
-      <div class="magFooter">
-        <span>TIMELINE</span>
-        <span>PAGE 2</span>
-      </div>
     </div>
-  </div>
 
-  <!-- PAGE 3: MOON & ASTRONOMY -->
-  <div class="magPage moonPage" style="--photo:url('https://images.unsplash.com/photo-1534791547706-9d7e6f5e7e2a?auto=format&fit=crop&w=1400&q=85');--photo2:url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1400&q=85')">
-    <div class="magInner">
-      <div class="magKicker">Astronomy</div>
-      <h2 class="magTitle">Lunar Phase</h2>
-      <div class="magIntro">Exact astronomical view of the moon on October 15, 2002.</div>
-      <div class="magBody">
-        <div class="historical-moon">
-          <img src="https://images.unsplash.com/photo-1532693322450-2cb5c511067d?auto=format&fit=crop&w=800&q=80" alt="Moon Phase 15 Oct 2002">
+    <!-- TOP NAVBAR -->
+    <header class="no-print sticky top-0 z-40 bg-gray-950/90 backdrop-blur-md border-b border-gray-800 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold font-cinzel text-sm">
+                    15
+                </div>
+                <div>
+                    <h1 class="text-sm sm:text-base font-cinzel font-bold text-amber-200 leading-none">THE 2002 CHRONICLE</h1>
+                    <p class="text-[10px] text-gray-400">Special Birthday Edition • Oct 15, 2002</p>
+                </div>
+            </div>
+
+            <!-- Page Quick Switcher -->
+            <div class="flex items-center gap-1 sm:gap-2">
+                <button onclick="toggleAudio()" id="audioBtn" class="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-amber-400 text-xs flex items-center gap-1" title="Toggle Sound Ambient">
+                    <i class="fa-solid fa-volume-high" id="audioIcon"></i>
+                    <span class="hidden sm:inline text-[11px]">Retro Audio</span>
+                </button>
+                <button onclick="window.print()" class="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs flex items-center gap-1" title="Print/Export PDF">
+                    <i class="fa-solid fa-file-pdf text-rose-400"></i>
+                    <span class="hidden sm:inline text-[11px]">Export</span>
+                </button>
+                <button onclick="togglePageGrid()" class="p-2 rounded-lg bg-indigo-900/60 hover:bg-indigo-800 text-indigo-300 text-xs flex items-center gap-1 border border-indigo-700/50">
+                    <i class="fa-solid fa-grid-2"></i>
+                    <span id="pageCounterText" class="font-mono text-[11px] font-bold">1 / 11</span>
+                </button>
+            </div>
         </div>
-        <div class="moon-label" style="text-align:center;">
-          <strong>Waxing Gibbous Phase</strong><br>
-          Illumination: ~73% | Age: ~9.5 days
+    </header>
+
+    <!-- THUMBNAIL NAV GRID OVERLAY -->
+    <div id="gridOverlay" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md p-4 sm:p-6 overflow-y-auto hidden">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-3">
+                <h3 class="text-xl font-cinzel font-bold text-amber-400"><i class="fa-solid fa-book-open mr-2"></i> Jump to Page (1 - 11)</h3>
+                <button onclick="togglePageGrid()" class="text-gray-400 hover:text-white text-2xl p-2">&times;</button>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs" id="pageGridContainer">
+                <!-- Dynamically populated via JavaScript -->
+            </div>
         </div>
-      </div>
-      <div class="magFooter">
-        <span>ASTRONOMY</span>
-        <span>PAGE 3</span>
-      </div>
     </div>
-  </div>
 
-  <!-- PAGE 4: KOLLYWOOD & MUSIC -->
-  <div class="magPage" style="--photo:url('https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1400&q=85');--photo2:url('https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1400&q=85')">
-    <div class="magInner">
-      <div class="magKicker">Entertainment</div>
-      <h2 class="magTitle">Kollywood & Music</h2>
-      <div class="magIntro">Top cinema releases, popular tracks, and box office hits in October 2002.</div>
-      <div class="magBody">
-        <div class="grid">
-          <div class="card">
-            <h3>Cinema Hits</h3>
-            <p>Popular releases dominate theaters with AR Rahman and Harris Jayaraj leading musical charts across Tamil Nadu.</p>
-          </div>
-          <div class="card">
-            <h3>Top Tracks</h3>
-            <p>Melodic chartbusters fill radio FM airwaves, showcasing the signature sound design of early 2000s south Indian music.</p>
-          </div>
+    <!-- MAIN MAGAZINE PAGE CONTAINER -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-3 sm:p-6 page-wrapper">
+
+        <!-- PAGE 1: COVER -->
+        <section id="page-1" class="magazine-page active">
+            <div class="paper-card rounded-2xl p-4 sm:p-8 border-2 border-amber-600/40 relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-amber-500 text-black font-bold text-[10px] sm:text-xs px-4 py-1 rounded-bl-xl font-mono uppercase tracking-widest">
+                    Collector's Birthday Edition
+                </div>
+
+                <div class="text-center border-b-2 border-amber-500/30 pb-4 mb-6">
+                    <p class="text-xs uppercase tracking-[0.3em] text-amber-400 font-semibold mb-1">Vol. Special • October 15, 2002</p>
+                    <h1 class="text-3xl sm:text-6xl font-cinzel font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600">
+                        TIME CAPSULE 2002
+                    </h1>
+                    <p class="text-xs sm:text-sm italic text-gray-400 mt-2">Dedicated to Menaga's Birth Date • A Nostalgic Journey Through History, Music, & Stars</p>
+                </div>
+
+                <div class="grid md:grid-cols-12 gap-6 items-center">
+                    <div class="md:col-col-span-12 lg:col-span-7 space-y-4">
+                        <div class="relative rounded-xl overflow-hidden gold-border group">
+                            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80" 
+                                 alt="Retro Aesthetic 2002" class="w-full h-64 sm:h-80 object-cover transform group-hover:scale-105 transition duration-500"
+                                 onerror="this.src='https://placehold.co/800x500/1e293b/d97706?text=15+October+2002+Archive'">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-4">
+                                <span class="bg-rose-600 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded w-max mb-1">Historical Snapshot</span>
+                                <h2 class="text-lg sm:text-2xl font-bold font-playfair text-white">The World on Tuesday, October 15, 2002</h2>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-12 lg:col-span-5 space-y-3">
+                        <div class="bg-gray-900/80 p-4 rounded-xl border border-gray-800">
+                            <h3 class="text-amber-400 font-semibold text-sm mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-newspaper text-xs"></i> In This Edition:
+                            </h3>
+                            <ul class="text-xs space-y-2 text-gray-300">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-clock text-amber-500"></i> Day Timeline & Global Hours</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-moon text-indigo-400"></i> Waxing Gibbous Astronomy</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-star text-purple-400"></i> Swati Nakshatra Zodiac Profile</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-landmark text-emerald-400"></i> TN & Global News Snapshots</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-film text-rose-400"></i> Cinema Era: Saamy, Baba & Rahman Hits</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-mobile-screen text-cyan-400"></i> Nokia 3310 & Dial-up Tech</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-rose-950/60 to-purple-950/60 p-4 rounded-xl border border-rose-900/40 text-center">
+                            <i class="fa-solid fa-cake-candles text-2xl text-rose-400 mb-1"></i>
+                            <h4 class="text-sm font-bold text-rose-200">Welcome, Menaga!</h4>
+                            <p class="text-[11px] text-gray-300">Turn the page to explore what was happening around the cosmos and the world on your special day.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 2: TIMELINE -->
+        <section id="page-2" class="magazine-page">
+            <div class="paper-card rounded-2xl p-4 sm:p-8">
+                <div class="border-b border-gray-800 pb-3 mb-6 flex justify-between items-end">
+                    <div>
+                        <span class="text-xs text-amber-400 font-mono">PAGE 02 / 11</span>
+                        <h2 class="text-2xl sm:text-4xl font-cinzel font-bold text-white">DAY'S TIMELINE</h2>
+                    </div>
+                    <span class="text-xs bg-amber-950 text-amber-300 px-3 py-1 rounded-full border border-amber-800">15 Oct 2002</span>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex gap-4 items-start bg-gray-900/60 p-3 sm:p-4 rounded-xl border border-gray-800">
+                        <div class="bg-amber-500/20 text-amber-400 font-mono font-bold text-xs px-3 py-1.5 rounded-lg border border-amber-500/30 whitespace-nowrap">
+                            02:30 AM UTC
+                        </div>
+                        <div class="text-xs sm:text-sm">
+                            <h3 class="font-bold text-gray-200">Global Markets & International Exchanges Open</h3>
+                            <p class="text-gray-400 mt-0.5">Asian stock markets open with tech trends; European bourses prepare for morning trading sessions during early 2002 economic shifts.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 items-start bg-indigo-950/40 p-3 sm:p-4 rounded-xl border border-indigo-900/40">
+                        <div class="bg-indigo-500/20 text-indigo-300 font-mono font-bold text-xs px-3 py-1.5 rounded-lg border border-indigo-500/30 whitespace-nowrap">
+                            08:00 AM UTC
+                        </div>
+                        <div class="text-xs sm:text-sm">
+                            <h3 class="font-bold text-gray-200">Morning Global News Broadcasts</h3>
+                            <p class="text-gray-400 mt-0.5">BBC & CNN headlines focus on South Asian peace talks, UN deliberations, and booming early internet technology expansion.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 items-start bg-emerald-950/40 p-3 sm:p-4 rounded-xl border border-emerald-900/40">
+                        <div class="bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-500/30 whitespace-nowrap">
+                            02:30 PM IST
+                        </div>
+                        <div class="text-xs sm:text-sm">
+                            <h3 class="font-bold text-gray-200">Tamil Nadu Afternoon Snapshot</h3>
+                            <p class="text-gray-400 mt-0.5">Radios in Chennai broadcast hits from Rahman & Harris Jayaraj. Schools and colleges operate during pleasant mid-October monsoon season weather.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 items-start bg-purple-950/40 p-3 sm:p-4 rounded-xl border border-purple-900/40">
+                        <div class="bg-purple-500/20 text-purple-300 font-mono font-bold text-xs px-3 py-1.5 rounded-lg border border-purple-500/30 whitespace-nowrap">
+                            08:00 PM IST
+                        </div>
+                        <div class="text-xs sm:text-sm">
+                            <h3 class="font-bold text-gray-200">Prime-time Television & Entertainment</h3>
+                            <p class="text-gray-400 mt-0.5">Sun TV broadcasts popular serials and Kollywood updates. Families gather around CRT television sets across South India.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 3: MOON PHASE -->
+        <section id="page-3" class="magazine-page">
+            <div class="paper-card rounded-2xl p-4 sm:p-8">
+                <div class="border-b border-gray-800 pb-3 mb-6">
+                    <span class="text-xs text-indigo-400 font-mono">PAGE 03 / 11</span>
+                    <h2 class="text-2xl sm:text-4xl font-cinzel font-bold text-white">MOON PHASE & ASTRONOMY</h2>
+                    <p class="text-xs text-gray-400">Celestial State on October 15, 2002</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6 items-center">
+                    <div class="flex flex-col items-center justify-center p-6 bg-gradient-to-b from-gray-950 to-indigo-950 rounded-xl border border-indigo-900/50 text-center">
+                        <!-- Simulated Moon SVG Waxing Gibbous -->
+                        <div class="w-40 h-40 rounded-full bg-slate-950 border-2 border-indigo-400/50 relative overflow-hidden shadow-[0_0_30px_rgba(99,102,241,0.3)] my-4">
+                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-slate-200/90 to-slate-100 rounded-full transform translate-x-4"></div>
+                            <div class="absolute inset-0 bg-black/40 rounded-full"></div>
+                        </div>
+                        <span class="text-lg font-bold text-indigo-200">Waxing Gibbous Moon</span>
+                        <span class="text-xs text-indigo-400 font-mono mt-1">~73% Illumination</span>
+                    </div>
+
+                    <div class="space-y-3 text-xs sm:text-sm text-gray-300">
+                        <div class="p-3 bg-gray-900/70 rounded-xl border border-gray-800">
+                            <span class="text-indigo-400 font-bold block mb-1">Lunar Age & Orbit</span>
+                            <p>On October 15, 2002, the Moon was approximately 9.4 days old, growing brighter in the night sky toward the Full Moon phase.</p>
+                        </div>
+                        <div class="p-3 bg-gray-900/70 rounded-xl border border-gray-800">
+                            <span class="text-indigo-400 font-bold block mb-1">Constellation Position</span>
+                            <p>Positioned in the constellation Aquarius/Capricornus quadrant, offering exceptionally clear sky viewing across tropical latitudes.</p>
+                        </div>
+                        <div class="p-3 bg-gray-900/70 rounded-xl border border-gray-800">
+                            <span class="text-indigo-400 font-bold block mb-1">Astronomical Sign</span>
+                            <p>Illuminating night skies with high atmospheric clarity, creating ideal stargazing conditions in South Asia.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 4: ZODIAC -->
+        <section id="page-4" class="magazine-page">
+            <div class="paper-card rounded-2xl p-4 sm:p-8">
+                <div class="border-b border-gray-800 pb-3 mb-6">
+                    <span class="text-xs text-purple-400 font-mono">PAGE 04 / 11</span>
+                    <h2 class="text-2xl sm:text-4xl font-cinzel font-bold text-white">ASTROLOGICAL PROFILE</h2>
+                    <p class="text-xs text-gray-400">Libra Sign & Swati Nakshatra Attributes</p>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <div class="p-5 bg-gradient-to-br from-purple-950/60 to-gray-900 rounded-xl border border-purple-900/50">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-300 text-xl font-bold">
+                                ♎
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-base text-purple-200">Sun Sign: Libra</h3>
+                                <p class="text-[11px] text-gray-400">Air Element • Venus Governed</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-300 leading-relaxed">
+                            Libras born on October 15 are known for harmony, diplomatic charm, artistic sensitivity, and balanced judgment. Governed by Venus, they possess a keen eye for beauty and creative expression.
+                        </p>
+                    </div>
+
+                    <div class="p-5 bg-gradient-to-br from-indigo-950/60 to-gray-900 rounded-xl border border-indigo-900/50">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-300 text-xl font-bold">
+                                ✨
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-base text-indigo-200">Nakshatra: Swati</h3>
+                                <p class="text-[11px] text-gray-400">Rahu Lordship • Independence</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-300 leading-relaxed">
+                            Swati Nakshatra symbolizes the young plant swaying in the wind — representing adaptability, independence, eloquence, and continuous self-growth.
+                        </p>
+                    </div>
+
+                    <div class="sm:col-span-2 p-4 bg-gray-900/80 rounded-xl border border-gray-800 text-xs text-gray-300 space-y-2">
+                        <h4 class="font-bold text-amber-400 uppercase tracking-wider">Key Personality Trait Matrix</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center pt-2">
+                            <div class="p-2 bg-gray-950 rounded border border-gray-800">
+                                <span class="text-amber-300 font-bold block">Intuitive</span>
+                                <span class="text-[10px] text-gray-500">High Emotional IQ</span>
+                            </div>
+                            <div class="p-2 bg-gray-950 rounded border border-gray-800">
+                                <span class="text-amber-300 font-bold block">Artistic</span>
+                                <span class="text-[10px] text-gray-500">Creative Vision</span>
+                            </div>
+                            <div class="p-2 bg-gray-950 rounded border border-gray-800">
+                                <span class="text-amber-300 font-bold block">Resilient</span>
+                                <span class="text-[10px] text-gray-500">Adaptable Mind</span>
+                            </div>
+                            <div class="p-2 bg-gray-950 rounded border border-gray-800">
+                                <span class="text-amber-300 font-bold block">Harmonious</span>
+                                <span class="text-[10px] text-gray-500">Natural Peacemaker</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 5: TAMIL NADU NEWS -->
+        <section id="page-5" class="magazine-page">
+            <div class="paper-card rounded-2xl p-4 sm:p-8">
+                <div class="border-b border-gray-800 pb-3 mb-6">
+                    <span class="text-xs text-emerald-400 font-mono">PAGE 05 / 11</span>
+                    <h2 class="text-2xl sm:text-4xl font-cinzel font-bold text-white">TAMIL NADU ARCHIVES</h2>
+                    <p class="text-xs text-gray-400">Regional Headlines & Local Life in October 2002</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="p-4 bg-emerald-950/30 rounded-xl border border-emerald-900/40">
+                        <span class="text-[10px] bg-emerald-900 text-emerald-200 px-2 py-0.5 rounded uppercase font-bold">State Governance</span>
+                        <h3 class="text-base font-bold text-emerald-200 mt-1">Jayalalithaa Administration & Infrastructure Projects</h3>
+                        <p class="text-xs text-gray-300 mt-1">In late 2002, Tamil Nadu was focused on water conservation initiatives, rain harvesting mandates across Chennai, and expanding rural development programs under Chief Minister J. Jayalalithaa.</p>
+                    </div>
+
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div class="p-4 bg-gray-900/80 rounded-xl border border-gray-800 text-xs">
+                            <h4 class="font-bold text-amber-300 mb-1"><i class="fa-solid fa-cloud-rain mr-1"></i> Northeast Monsoon Arrival</h4>
+                            <p class="text-gray-400">October 2002 marked the vital onset of the Northeast monsoon, bringing long-awaited rains to reservoirs in Poondi and Red Hills to sustain Chennai's water supplies.</p>
+                        </div>
+                        <div class="p-4 bg-gray-900/80 rounded-xl border border-gray-800 text-xs">
+                            <h4 class="font-bold text-amber-300 mb-1"><i class="fa-solid fa-bus mr-1"></i> Transport & Connectivity</h4>
+                            <p class="text-gray-400">MTC bus fleets were modernizing, and discussions for Chennai mass transit corridors were actively shaping urban infrastructure planning.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 6: WORLD AFFAIRS -->
+        <section id="page-6" class="magazine-page">
+            <div class="paper-card rounded-2xl p-4 sm:p-8">
+                <div class="border-b border-gray-800 pb-3 mb-6">
+                    <span class="text-xs text-blue-400 font-mono">PAGE 06 / 11</span>
+                    <h2 class="text-2xl sm:text-4xl font-cinzel font-bold text-white">POLITICAL LANDSCAPE</h2>
+                    <p class="text-xs text-gray-400">India & International News • October 2002</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-blue-950/40 rounded-xl border border-blue-900/50 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-flag text-blue-400 text-lg"></i>
+                            <h3 class="font-bold text-blue-200 text-sm">Dr. A.P.J. Abdul Kalam Presidency</h3>
+                        </div>
+                        <p class="text-xs text-gray-300">
+                            Dr. A.P.J. Abdul Kalam, sworn in as the 11th President of India in July 2002, was actively inspiring youth across the nation with his Vision 2020 roadmap for technological self-reliance.
+                        </p>
+                    </div>
+
+                    <div class="p-4 bg-gray-900/80 rounded-xl border border-gray-800 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-earth-americas text-amber-400 text-lg"></i>
+                            <h3 class="font-bold text-amber-200 text-sm">Global Headlines</h3>
+                        </div>
+                        <ul class="text-xs text-gray-300 space-y-1.5 list-disc list-inside">
+                            <li>UN debates and diplomatic resolutions in autumn 2002.</li>
+                            <li>Growth of the Euro currency, introduced earlier in January 2002.</li>
+                            <li>Early space station science and international technology partnerships.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 7: CINEMA ERA -->
+        <section id="page-7" class="magazine-page">
+            <div class="paper-card rounded-2xl p-4 sm:p-8">
+                <div class="border-b border-gray-800 pb-3 mb-6">
+                    <span class="text-xs text-rose-400 font-mono">PAGE 07 / 11</span>
+                    <h2 class="text-2xl sm:text-4xl font-cinzel font-bold text-white">KOLLYWOOD & CINEMA 2002</h2>
+                    <p class="text-xs text-gray-400">The Silver Screen Magic of October 2002</p>
+                </div>
+
+                <div class="grid sm:grid-cols-3 gap-4">
+                    <div class="bg-gray-900/90 rounded-xl p-3 border border-gray-800 text-center">
+                        <div class="w-full h-32 bg-rose-950/60 rounded-lg flex items-center justify-center text-rose-400 font-bold text-lg mb-2 border border-rose-900/40">
+                            BABA / SAAMY ERA
+                        </div>
+                        <h3 class="font-bold text-xs text-rose-200">Superstar Rajinikanth</h3>
+                        <p class="text-[11px] text-gray-400 mt-1">2002 saw Rajinikanth's *Baba* dominating pop culture discussions and theater box offices.</p>
+                    </div>
+
+                    <div class="bg-gray-900/90 rounded-xl p-3 border border-gray-800 text-center">
+                        <div class="w-full h-32 bg-amber-950/60 rounded-lg flex items-center justify-center text-amber-400 font-bold text-lg mb-2 border border-amber-900/40">
+                            RUN & THIRUMALAI
+                        </div>
+                        <h3 class="font-bold text-xs text-amber-200">Madhavan & Vijay</h3>
+                        <p class="text-[11px] text-gray-400 mt-1">*Run* was a massive blockbuster hit, while Thalapathy Vijay prepared for action-packed hits.</p>
+                    </div>
+
+                    <div class="bg-gray-900/90 rounded-xl p-3 border border-gray-800 text-center">
+                        <div class="w-full h-32 bg-purple-950/60 rounded-lg flex items-center justify-center text-purple-400 font-bold text-lg mb-2 border border-purple-900/40">
+                            KANNATHIL MUTHAMITTAL
+                        </div>
+                        <h3 class="font-bold text-xs text-purple-200">Mani Ratnam Classic</h3>
+                        <p class="text-[11px] text-gray-400 mt-1">Released in 2002 to critical global acclaim and multiple National Film Awards.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 8: MUSIC & SOUNDTRACKS -->
+        <section id="page-8" class="magazine-page">
+            <div class="paper-card rounded-2xl p-4 sm:p-8">
+                <div class="border-b border-gray-800 pb-3 mb-6">
+                    <span class="text-xs text-yellow-400 font-mono">PAGE 08 / 11</span>
+                    <h2 class="text-2xl sm:text-4xl font-cinzel font-bold text-white">MUSIC & POP HITS</h2>
+                    <p class="text-xs text-gray-400">Cassettes, CDs, & Radio Anthems of 2002</p>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="p-3.5 bg-gray-900/90 rounded-xl border border-gray-800 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-bold text-xs">
+                                <i class="fa-solid fa-compact-disc animate-spin" style="animation-duration: 8s;"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xs sm:text-sm font-bold text-white">A.R. Rahman Hits</h3>
+                                <p class="text-[11px] text-gray-400">"Vellai Pookal" (Kannathil Muthamittal) & "Maya Maya" (Baba)</p>
+                            </div>
+                        </div>
+                        <button onclick="playBeep(440)" class="text-xs bg-amber-500/20 text-amber-300 px-3 py-1.5 rounded-lg border border-amber-500/40 hover:bg-amber-500/30">
+                            <i class="fa-solid fa-play text-[10px] mr-1"></i> Sample Synth
+                        </button>
+                    </div>
+
+                    <div class="p-3.5 bg-gray-900/90 rounded-xl border border-gray-800 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold text-xs">
+                                <i class="fa-solid fa-music"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xs sm:text-sm font-bold text-white">Harris Jayaraj Wave</h3>
+                                <p class="text-[11px] text-gray-400">"Poi Solla Intha Manasuku" (Run) dominating cassette sales</p>
+                            </div>
+                        </div>
+                        <button onclick="playBeep(523)" class="text-xs bg-rose-500/20 text-rose-300 px-3 py-1.5 rounded-lg border border-rose-500/40 hover:bg-rose-500/30">
+                            <i class="fa-solid fa-play text-[10px] mr-1"></i> Sample Synth
+                        </button>
+                    </div>
+
+                    <div class="p-3.5 bg-gray-900/90 rounded-xl border border-gray-800 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-xs">
+                                <i class="fa-solid fa-radio"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xs sm:text-sm font-bold text-white">Global Pop Icons 2002</h3>
+                                <p class="text-[11px] text-gray-400">Eminem (*Without Me*), Avril Lavigne (*Complicated*), Shakira</p>
+                            </div>
+                        </div>
+                        <button onclick="playBeep(659)" class="text-xs bg-cyan-500/20 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-500/40 hover:bg-cyan-500/30">
+                            <i class="fa-solid fa-play text-[10px] mr-1"></i> Sample Synth
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 9: TECH & INTERNET ERA -->
+        <section id="page-9" class="magazine-page">
+            <div class="paper-card rounded-2xl p-4 sm:p-8">
+                <div class="border-b border-gray-800 pb-3 mb-6">
+                    <span class="text-xs text-cyan-400 font-mono">PAGE 09 / 11</span>
+                    <h2 class="text-2xl sm:text-4xl font-cinzel font-bold text-white">TECH & DIAL-UP ERA</h2>
+                    <p class="text-xs text-gray-400">Gadgets & Internet Culture in Late 2002</p>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4 text-xs">
+                    <div class="p-4 bg-gray-950 rounded-xl border border-cyan-900/40 space-y-2">
+                        <div class="flex items-center gap-2 text-cyan-300 font-bold">
+                            <i class="fa-solid fa-mobile-retro text-lg"></i>
+                            <span>Nokia 3310 & Early Mobiles</span>
+                        </div>
+                        <p class="text-gray-400 leading-relaxed">
+                            Monochrome screens, Snake II game, customizable plastic snap-on covers, and custom ringtone composer codes were the ultimate fashion statement.
+                        </p>
+                    </div>
+
+                    <div class="p-4 bg-gray-950 rounded-xl border border-cyan-900/40 space-y-2">
+                        <div class="flex items-center gap-2 text-cyan-300 font-bold">
+                            <i class="fa-solid fa-desktop text-lg"></i>
+                            <span>Dial-Up & CRT Monitors</span>
+                        </div>
+                        <p class="text-gray-400 leading-relaxed">
+                            Connecting via 56k dial-up modems with screeching tones, Yahoo! Messenger, Yahoo! Mail, Floppy disks (1.44MB), and heavy CRT monitors.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 10: FASHION & LIFESTYLE -->
+        <section id="page-10" class="magazine-page">
+            <div class="paper-card rounded-2xl p-4 sm:p-8">
+                <div class="border-b border-gray-800 pb-3 mb-6">
+                    <span class="text-xs text-pink-400 font-mono">PAGE 10 / 11</span>
+                    <h2 class="text-2xl sm:text-4xl font-cinzel font-bold text-white">BEAUTY & FASHION 2002</h2>
+                    <p class="text-xs text-gray-400">Style, Trends, and Y2K Aesthetics</p>
+                </div>
+
+                <div class="grid sm:grid-cols-3 gap-3 text-xs">
+                    <div class="p-4 bg-pink-950/30 rounded-xl border border-pink-900/40">
+                        <h3 class="font-bold text-pink-200 mb-1"><i class="fa-solid fa-shirt mr-1"></i> Y2K Fashion Trends</h3>
+                        <p class="text-gray-400">Low-rise denim, frosted gloss, denim jackets, bandanas, and chunky platform footwear defined the early 2000s look.</p>
+                    </div>
+
+                    <div class="p-4 bg-pink-950/30 rounded-xl border border-pink-900/40">
+                        <h3 class="font-bold text-pink-200 mb-1"><i class="fa-solid fa-gem mr-1"></i> Accessories</h3>
+                        <p class="text-gray-400">Butterfly hair clips, metallic eyeshadows, chokers, and vibrant gel pens in school stationary sets.</p>
+                    </div>
+
+                    <div class="p-4 bg-pink-950/30 rounded-xl border border-pink-900/40">
+                        <h3 class="font-bold text-pink-200 mb-1"><i class="fa-solid fa-heart mr-1"></i> Nostalgic Lifestyle</h3>
+                        <p class="text-gray-400">Collecting photo albums, writing physical slam books, listening to Walkmans, and renting video cassettes.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 11: TIME CAPSULE SUMMARY -->
+        <section id="page-11" class="magazine-page">
+            <div class="paper-card rounded-2xl p-4 sm:p-8 border-2 border-amber-500/50 text-center space-y-6">
+                <div>
+                    <span class="text-xs text-amber-400 font-mono">PAGE 11 / 11 • FINAL VAULT</span>
+                    <h2 class="text-3xl sm:text-5xl font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-500 mt-1">
+                        MEMORY VAULT 15.10.2002
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-1">A Permanent Birthday Capsule for Menaga</p>
+                </div>
+
+                <div class="max-w-xl mx-auto p-5 bg-gradient-to-b from-gray-900 to-amber-950/40 rounded-xl border border-amber-700/40 space-y-3">
+                    <i class="fa-solid fa-gift text-4xl text-amber-400 animate-bounce"></i>
+                    <h3 class="text-lg font-bold text-amber-200">Happy Birthday!</h3>
+                    <p class="text-xs text-gray-300 leading-relaxed">
+                        This digital magazine stands as an intact time capsule preserving the exact astronomical alignment, culture, cinema, news, and nostalgic atmosphere of October 15, 2002.
+                    </p>
+                </div>
+
+                <div class="pt-2 flex flex-wrap justify-center gap-3 no-print">
+                    <button onclick="goToPage(1)" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-black font-bold rounded-xl text-xs transition">
+                        <i class="fa-solid fa-rotate-left mr-1"></i> Read From Cover Again
+                    </button>
+                    <button onclick="window.print()" class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl text-xs transition border border-gray-700">
+                        <i class="fa-solid fa-print mr-1"></i> Save/Print Entire Capsule
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- BOTTOM FOOTER & NAVIGATION BAR -->
+    <footer class="no-print sticky bottom-0 z-40 bg-gray-950/95 backdrop-blur-md border-t border-gray-800 py-3 px-4">
+        <div class="max-w-5xl mx-auto flex items-center justify-between">
+            <button onclick="prevPage()" id="prevBtn" class="px-4 py-2.5 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-amber-400 font-bold rounded-xl text-xs flex items-center gap-2 transition disabled:opacity-40">
+                <i class="fa-solid fa-chevron-left"></i> Prev
+            </button>
+
+            <!-- Page Number Dots Indicator -->
+            <div class="flex items-center gap-1.5 overflow-x-auto px-2" id="dotsContainer">
+                <!-- Javascript will insert 11 dots -->
+            </div>
+
+            <button onclick="nextPage()" id="nextBtn" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-black font-bold rounded-xl text-xs flex items-center gap-2 transition shadow-lg shadow-amber-950/50">
+                Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
         </div>
-      </div>
-      <div class="magFooter">
-        <span>ENTERTAINMENT</span>
-        <span>PAGE 4</span>
-      </div>
-    </div>
-  </div>
+    </footer>
 
-  <!-- PAGE 5: TECH & INTERNET -->
-  <div class="magPage" style="--photo:url('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1400&q=85');--photo2:url('https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1400&q=85')">
-    <div class="magInner">
-      <div class="magKicker">Technology</div>
-      <h2 class="magTitle">The 2002 Digital Era</h2>
-      <div class="magIntro">Internet culture, dial-up connectivity, and technological hardware in 2002.</div>
-      <div class="magBody">
-        <div class="grid">
-          <div class="card">
-            <h3>Web & Tech</h3>
-            <p>Desktop PCs with CRT monitors, dial-up modems, floppy disks, and nascent search engines define the digital landscape.</p>
-          </div>
-          <div class="card">
-            <h3>Mobile Phones</h3>
-            <p>Monochrome display phones with physical keypads and polyphonic ringtones dominate consumer electronics.</p>
-          </div>
-        </div>
-      </div>
-      <div class="magFooter">
-        <span>TECHNOLOGY</span>
-        <span>PAGE 5</span>
-      </div>
-    </div>
-  </div>
-</div>
+    <script>
+        // Total Pages setup
+        const TOTAL_PAGES = 11;
+        let currentPage = 1;
+        let audioActive = false;
+        let audioCtx = null;
 
-<div id="magHint">SWIPE OR USE BUTTONS TO FLIP PAGES</div>
+        const pageTitles = [
+            "Cover - Birthday Edition",
+            "Day's Timeline",
+            "Moon Phase & Astronomy",
+            "Zodiac & Astrological Profile",
+            "Tamil Nadu News 2002",
+            "Political Landscape",
+            "Kollywood & Cinema 2002",
+            "Music & Pop Culture Hits",
+            "Tech & Internet Era",
+            "Beauty & Lifestyle Trends",
+            "Time Capsule Vault Summary"
+        ];
 
-<div id="magControls">
-  <button class="magBtn" id="prevBtn" onclick="prevPage()">‹</button>
-  <div id="magCount">PAGE 1 / 5</div>
-  <button class="magBtn" id="nextBtn" onclick="nextPage()">›</button>
-</div>
+        // Initialize application after DOM Load
+        document.addEventListener('DOMContentLoaded', () => {
+            generateDots();
+            generateGridItems();
+            updatePageVisibility();
+            setupTouchNavigation();
+        });
 
-<button id="pdfDownload" onclick="window.print()">PRINT / SAVE PDF</button>
+        // Handle Login Submission
+        function handleLogin(e) {
+            e.preventDefault();
+            const name = document.getElementById('loginName').value.trim();
+            const dob = document.getElementById('loginDOB').value.trim();
+            const errorDiv = document.getElementById('loginError');
 
-<script>
-let currentPage = 0;
-const pages = document.querySelectorAll('.magPage');
-const totalPages = pages.length;
+            // Flexible validation for "Menaga" & "15/10/2002"
+            if (name.toLowerCase() === 'menaga' && dob.replace(/\s+/g, '') === '15/10/2002') {
+                document.getElementById('loginGate').classList.add('hidden');
+                // Play subtle welcome sound
+                playBeep(587, 0.2);
+            } else {
+                errorDiv.classList.remove('hidden');
+            }
+        }
 
-function updatePageControls() {
-  document.getElementById('magCount').innerText = `PAGE ${currentPage + 1} / ${totalPages}`;
-  document.getElementById('prevBtn').disabled = (currentPage === 0);
-  document.getElementById('nextBtn').disabled = (currentPage === totalPages - 1);
-}
+        // Navigation Functions
+        function goToPage(pageNum) {
+            if (pageNum >= 1 && pageNum <= TOTAL_PAGES) {
+                currentPage = pageNum;
+                updatePageVisibility();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
 
-function showPage(index, direction) {
-  if (index < 0 || index >= totalPages) return;
-  
-  const oldPage = pages[currentPage];
-  const newPage = pages[index];
+        function nextPage() {
+            if (currentPage < TOTAL_PAGES) {
+                goToPage(currentPage + 1);
+            }
+        }
 
-  oldPage.classList.remove('active', 'turn-forward', 'turn-back', 'flip-under');
-  newPage.classList.remove('active', 'turn-forward', 'turn-back', 'flip-under');
+        function prevPage() {
+            if (currentPage > 1) {
+                goToPage(currentPage - 1);
+            }
+        }
 
-  if (direction === 'next') {
-    oldPage.classList.add('turn-forward');
-    newPage.classList.add('active');
-  } else if (direction === 'prev') {
-    oldPage.classList.add('turn-back');
-    newPage.classList.add('active');
-  } else {
-    newPage.classList.add('active');
-  }
+        // Render Page Dots at footer
+        function generateDots() {
+            const container = document.getElementById('dotsContainer');
+            container.innerHTML = '';
+            for (let i = 1; i <= TOTAL_PAGES; i++) {
+                const dot = document.createElement('button');
+                dot.className = `w-2.5 h-2.5 rounded-full transition-all ${i === currentPage ? 'bg-amber-400 w-5' : 'bg-gray-700'}`;
+                dot.onclick = () => goToPage(i);
+                dot.title = `Go to page ${i}: ${pageTitles[i-1]}`;
+                container.appendChild(dot);
+            }
+        }
 
-  currentPage = index;
-  updatePageControls();
-}
+        // Render Page Grid thumbnails
+        function generateGridItems() {
+            const container = document.getElementById('pageGridContainer');
+            container.innerHTML = '';
+            for (let i = 1; i <= TOTAL_PAGES; i++) {
+                const item = document.createElement('div');
+                item.className = `p-3 rounded-xl border text-left cursor-pointer transition ${i === currentPage ? 'bg-amber-950/60 border-amber-500 text-amber-200' : 'bg-gray-900 border-gray-800 text-gray-300 hover:border-gray-700'}`;
+                item.onclick = () => {
+                    goToPage(i);
+                    togglePageGrid();
+                };
+                item.innerHTML = `
+                    <div class="font-mono text-[10px] text-amber-500 font-bold">PAGE ${i < 10 ? '0'+i : i}</div>
+                    <div class="font-bold text-xs mt-1 truncate">${pageTitles[i-1]}</div>
+                `;
+                container.appendChild(item);
+            }
+        }
 
-function nextPage() {
-  if (currentPage < totalPages - 1) {
-    showPage(currentPage + 1, 'next');
-  }
-}
+        // Toggle Modal Grid
+        function togglePageGrid() {
+            const grid = document.getElementById('gridOverlay');
+            grid.classList.toggle('hidden');
+        }
 
-function prevPage() {
-  if (currentPage > 0) {
-    showPage(currentPage - 1, 'prev');
-  }
-}
+        // Update Visibility & Controls
+        function updatePageVisibility() {
+            for (let i = 1; i <= TOTAL_PAGES; i++) {
+                const pageEl = document.getElementById(`page-${i}`);
+                if (pageEl) {
+                    if (i === currentPage) {
+                        pageEl.classList.add('active');
+                    } else {
+                        pageEl.classList.remove('active');
+                    }
+                }
+            }
 
-// Touch swipe support for smartphone experience
-let touchStartX = 0;
-let touchEndX = 0;
+            // Update Counter Text
+            document.getElementById('pageCounterText').innerText = `${currentPage} / ${TOTAL_PAGES}`;
 
-document.getElementById('magBook').addEventListener('touchstart', e => {
-  touchStartX = e.changedTouches[0].screenX;
-}, {passive: true});
+            // Update Button States
+            document.getElementById('prevBtn').disabled = (currentPage === 1);
+            document.getElementById('nextBtn').disabled = (currentPage === TOTAL_PAGES);
 
-document.getElementById('magBook').addEventListener('touchend', e => {
-  touchEndX = e.changedTouches[0].screenX;
-  handleSwipe();
-}, {passive: true});
+            generateDots();
+        }
 
-function handleSwipe() {
-  if (touchEndX < touchStartX - 40) nextPage();
-  if (touchEndX > touchStartX + 40) prevPage();
-}
+        // Swipe Gestures Support for Smartphone Touchscreens (e.g., Realme 6)
+        function setupTouchNavigation() {
+            let touchStartX = 0;
+            let touchEndX = 0;
+            const threshold = 50; // Minimum swipe distance in px
 
-// LOGIN VALIDATION
-function validateLogin() {
-  const name = document.getElementById('gateName').value.trim().toLowerCase();
-  const dob = document.getElementById('gateDob').value.trim();
-  const errorEl = document.getElementById('horrorError');
+            document.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
 
-  // Login credentials check: Menaga / 15/10/2002
-  if (name === 'menaga' && (dob === '15/10/2002' || dob === '15-10-2002' || dob === '15.10.2002')) {
-    document.getElementById('birthdayGate').classList.add('hidden');
-    errorEl.style.display = 'none';
-  } else {
-    errorEl.style.display = 'block';
-  }
-}
+            document.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, { passive: true });
 
-updatePageControls();
-</script>
+            function handleSwipe() {
+                // Ignore swipe if modal grid or login gate is visible
+                const isGridOpen = !document.getElementById('gridOverlay').classList.contains('hidden');
+                const isLoginOpen = !document.getElementById('loginGate').classList.contains('hidden');
+                if (isGridOpen || isLoginOpen) return;
+
+                if (touchEndX < touchStartX - threshold) {
+                    nextPage(); // Swipe Left -> Next Page
+                }
+                if (touchEndX > touchStartX + threshold) {
+                    prevPage(); // Swipe Right -> Prev Page
+                }
+            }
+        }
+
+        // Web Audio API Retro Sound Effects
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playBeep(freq = 440, duration = 0.15) {
+            try {
+                initAudio();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (err) {
+                console.log('Audio disabled or restricted');
+            }
+        }
+
+        function toggleAudio() {
+            audioActive = !audioActive;
+            const btnIcon = document.getElementById('audioIcon');
+            if (audioActive) {
+                btnIcon.className = "fa-solid fa-volume-high text-emerald-400";
+                playBeep(523, 0.2);
+            } else {
+                btnIcon.className = "fa-solid fa-volume-xmark text-gray-400";
+            }
+        }
+    </script>
 </body>
 </html>
