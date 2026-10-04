@@ -1151,6 +1151,299 @@ input, button, textarea, select {
 }
 </style>
 
+
+<style id="mobile-website-scroll-final">
+/* =========================================================
+   MOBILE WEBSITE MODE
+   Pages flow vertically like a normal website.
+   DO NOT use a fixed viewport/page-scroller like a PDF viewer.
+   ========================================================= */
+
+html {
+  width:100%;
+  min-width:100%;
+  margin:0;
+  padding:0;
+  background:#000;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+  overflow-x:hidden !important;
+}
+
+body {
+  width:100%;
+  min-width:100%;
+  margin:0;
+  padding:0;
+  background:#000;
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+  overscroll-behavior-x:none;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Absolutely NO input zoom on mobile. */
+input,
+button,
+textarea,
+select {
+  font-size:16px !important;
+  -webkit-text-size-adjust:100% !important;
+  text-size-adjust:100% !important;
+  touch-action:manipulation;
+}
+
+@media (max-width:700px) {
+
+  /*
+    Critical change:
+    #magBook is now part of normal document flow.
+    The body is the thing that scrolls, exactly like a website.
+  */
+  #magBook {
+    position:relative !important;
+    inset:auto !important;
+    width:100vw !important;
+    height:auto !important;
+    min-width:100vw !important;
+    min-height:0 !important;
+    max-width:none !important;
+    max-height:none !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+    transform:none !important;
+    perspective:none !important;
+  }
+
+  /*
+    Every magazine page becomes a full mobile viewport-height
+    website section. Scrolling moves the WHOLE page, not an
+    inner page/PDF-like container.
+  */
+  .magPage {
+    position:relative !important;
+    inset:auto !important;
+    display:block !important;
+    width:100vw !important;
+    height:auto !important;
+    min-height:100svh !important;
+    min-height:100dvh !important;
+    max-width:none !important;
+    max-height:none !important;
+    margin:0 !important;
+    padding:0 !important;
+    box-sizing:border-box !important;
+    overflow:visible !important;
+    overflow-y:visible !important;
+    overflow-x:hidden !important;
+    border:0 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+    transform:none !important;
+  }
+
+  /*
+    Remove any page-flip positioning that can make pages behave
+    like a PDF/canvas viewer. The page itself is the website section.
+  */
+  .magPage.active,
+  .magPage.current,
+  .magPage.next,
+  .magPage.prev {
+    position:relative !important;
+  }
+
+  .magInner {
+    position:relative !important;
+    width:100% !important;
+    min-width:0 !important;
+    min-height:100svh !important;
+    min-height:100dvh !important;
+    height:auto !important;
+    box-sizing:border-box !important;
+    overflow:visible !important;
+    padding:
+      calc(58px + env(safe-area-inset-top))
+      max(18px, env(safe-area-inset-right))
+      calc(85px + env(safe-area-inset-bottom))
+      max(18px, env(safe-area-inset-left)) !important;
+  }
+
+  /* Never create an inner scrolling area. */
+  .magPage *,
+  .magInner,
+  .magBody {
+    scrollbar-width:auto;
+  }
+
+  .magBody {
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    overflow:visible !important;
+  }
+
+  /*
+    The cover remains a full-screen website section rather than
+    being cropped into a PDF-like fixed viewport.
+  */
+  .magPage.cover {
+    min-height:100svh !important;
+    min-height:100dvh !important;
+    height:100svh !important;
+    height:100dvh !important;
+    overflow:hidden !important;
+  }
+
+  .magPage.cover::before {
+    position:absolute !important;
+    inset:0 !important;
+    width:100% !important;
+    height:100% !important;
+    background-size:cover !important;
+    background-position:center !important;
+  }
+
+  /*
+    Top bar belongs to the WEBSITE, not the browser.
+    It is fixed only as a website navigation bar; the body
+    continues scrolling normally underneath it.
+  */
+  #mobileGalleryBar {
+    display:flex !important;
+    position:fixed !important;
+    z-index:2147483000 !important;
+    top:0 !important;
+    left:0 !important;
+    right:0 !important;
+    height:calc(46px + env(safe-area-inset-top)) !important;
+    padding:
+      env(safe-area-inset-top)
+      max(12px, env(safe-area-inset-right))
+      0
+      max(12px, env(safe-area-inset-left)) !important;
+    box-sizing:border-box !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    background:linear-gradient(to bottom,rgba(0,0,0,.78),rgba(0,0,0,.20),transparent) !important;
+    pointer-events:none !important;
+  }
+
+  /* Don't let old controls create their own scrolling context. */
+  #magControls {
+    position:fixed !important;
+    z-index:2147482990 !important;
+    left:50% !important;
+    bottom:max(10px, env(safe-area-inset-bottom)) !important;
+    transform:translateX(-50%) !important;
+  }
+
+  #magHint {
+    position:fixed !important;
+    z-index:2147482980 !important;
+  }
+
+  /*
+    LOGIN:
+    Full website-style screen, but the login card itself does
+    not resize/scale when keyboard appears.
+  */
+  #birthdayGate {
+    position:fixed !important;
+    inset:0 !important;
+    width:100vw !important;
+    height:100svh !important;
+    height:100dvh !important;
+    min-height:0 !important;
+    box-sizing:border-box !important;
+    padding:
+      calc(58px + env(safe-area-inset-top))
+      max(12px, env(safe-area-inset-right))
+      max(18px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left)) !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    align-items:center !important;
+  }
+
+  .horror-card {
+    width:min(94vw,570px) !important;
+    max-width:570px !important;
+    box-sizing:border-box !important;
+    transform:none !important;
+    zoom:1 !important;
+    transition:none !important;
+  }
+
+  /*
+    Chrome/Safari will not perform their automatic input enlargement.
+    16px is intentional. The visual card stays at the same scale.
+  */
+  .horror-input,
+  #birthdayGate input {
+    width:100% !important;
+    height:48px !important;
+    min-height:48px !important;
+    font-size:16px !important;
+    line-height:48px !important;
+    padding:0 14px !important;
+    box-sizing:border-box !important;
+    transform:none !important;
+    zoom:1 !important;
+    -webkit-appearance:none !important;
+    appearance:none !important;
+  }
+
+  .horror-input:focus,
+  #birthdayGate input:focus {
+    transform:none !important;
+    zoom:1 !important;
+  }
+
+  /*
+    When keyboard opens, don't scale the page/card.
+    Let Chrome handle the visual viewport naturally.
+  */
+  #birthdayGate.keyboard-open .horror-card {
+    transform:none !important;
+    zoom:1 !important;
+  }
+
+  #loginGalleryBar {
+    display:flex !important;
+    position:fixed !important;
+    z-index:2147483646 !important;
+    top:0 !important;
+    left:0 !important;
+    right:0 !important;
+    height:calc(46px + env(safe-area-inset-top)) !important;
+    padding:
+      env(safe-area-inset-top)
+      max(12px, env(safe-area-inset-right))
+      0
+      max(12px, env(safe-area-inset-left)) !important;
+    box-sizing:border-box !important;
+    align-items:center !important;
+    background:linear-gradient(to bottom,rgba(0,0,0,.88),rgba(0,0,0,.20),transparent) !important;
+    pointer-events:none !important;
+  }
+}
+
+/* =========================================================
+   IMPORTANT: On mobile this is a WEBSITE, not a PDF viewer.
+   Disable old flip/absolute/fixed page transforms if present.
+   ========================================================= */
+@media (max-width:700px) {
+  #magBook,
+  #magBook .magPage,
+  #magBook .magPage .magInner {
+    transform-style:flat !important;
+    backface-visibility:visible !important;
+  }
+}
+</style>
+
 </head>
 
 <body class="login-locked">
@@ -3384,5 +3677,76 @@ GATHERED BY CHATGPT • DESIGNED BY GV
   };
 })();
 </script>
+
+<script id="mobile-website-scroll-js">
+(function(){
+  function isMobile(){
+    return window.matchMedia('(max-width:700px)').matches;
+  }
+
+  function mobileWebsiteMode(){
+    if(!isMobile()) return;
+
+    const book = document.getElementById('magBook');
+    if(book){
+      book.style.position = 'relative';
+      book.style.height = 'auto';
+      book.style.overflow = 'visible';
+    }
+
+    document.querySelectorAll('.magPage').forEach(function(page){
+      page.style.position = 'relative';
+      page.style.height = 'auto';
+      page.style.minHeight = '100dvh';
+      page.style.overflow = 'visible';
+    });
+  }
+
+  /*
+    Do NOT change font size, transform, or scale when an input
+    receives focus. This prevents the "zoomed login" effect.
+  */
+  function watchLoginKeyboard(){
+    const gate = document.getElementById('birthdayGate');
+    if(!gate) return;
+
+    const inputs = gate.querySelectorAll('input');
+    inputs.forEach(function(input){
+      input.addEventListener('focus', function(){
+        gate.classList.add('keyboard-open');
+      }, {passive:true});
+
+      input.addEventListener('blur', function(){
+        setTimeout(function(){
+          if(!gate.querySelector('input:focus')){
+            gate.classList.remove('keyboard-open');
+          }
+        }, 80);
+      }, {passive:true});
+    });
+  }
+
+  mobileWebsiteMode();
+  watchLoginKeyboard();
+
+  window.addEventListener('resize', function(){
+    mobileWebsiteMode();
+  }, {passive:true});
+
+  /*
+    VisualViewport is used only to preserve the card scale.
+    No zoom/transform is applied.
+  */
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', function(){
+      const gate = document.getElementById('birthdayGate');
+      if(gate && gate.querySelector('input:focus')){
+        gate.classList.add('keyboard-open');
+      }
+    }, {passive:true});
+  }
+})();
+</script>
+
 </body>
 </html>
