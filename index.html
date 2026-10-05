@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#090807">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -919,6 +919,622 @@ html.app-fullscreen .magPage {
 }
 </style>
 
+
+<style id="fixed-mobile-magazine-final">
+/* =========================================================
+   FIXED MOBILE MAGAZINE — NO PAGE SCROLLING
+   - Every magazine page is exactly one viewport
+   - Content is automatically scaled to fit inside that page
+   - Page changes happen only with arrows / swipe / edge tap
+   - Login is also fixed; inputs stay 16px to prevent mobile zoom
+   ========================================================= */
+
+html,body{
+  width:100%;
+  height:100%;
+  min-width:100%;
+  min-height:100%;
+  margin:0;
+  padding:0;
+  overflow:hidden !important;
+  overscroll-behavior:none !important;
+  -webkit-text-size-adjust:100% !important;
+  text-size-adjust:100% !important;
+}
+
+body{
+  touch-action:manipulation;
+}
+
+/* ---------- THE BOOK ---------- */
+#magBook{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100dvh !important;
+  margin:0 !important;
+  transform:none !important;
+  overflow:hidden !important;
+  perspective:1800px !important;
+  transform-style:preserve-3d;
+}
+
+.magPage{
+  position:absolute !important;
+  inset:0 !important;
+  width:100% !important;
+  height:100% !important;
+  min-width:100% !important;
+  min-height:100% !important;
+  max-width:100% !important;
+  max-height:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  overscroll-behavior:none !important;
+  touch-action:pan-x !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+
+/* The cover remains a single fixed image page. */
+.magPage.cover{
+  overflow:hidden !important;
+}
+
+/* ---------- EVERY CONTENT PAGE ---------- */
+.magInner{
+  position:absolute !important;
+  left:0 !important;
+  top:0 !important;
+  width:100% !important;
+  height:100% !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  max-width:none !important;
+  max-height:none !important;
+  margin:0 !important;
+  padding:clamp(24px,5vw,58px) clamp(18px,5vw,58px) 72px !important;
+  overflow:hidden !important;
+  transform-origin:top left !important;
+  will-change:transform,width,height;
+}
+
+/* JS applies the final scale to this variable. */
+.magInner{
+  --page-fit-scale:1;
+  transform:scale(var(--page-fit-scale)) !important;
+  width:calc(100% / var(--page-fit-scale)) !important;
+  height:calc(100% / var(--page-fit-scale)) !important;
+}
+
+/* Do not allow any child to create a scrollable box. */
+.magBody,
+.magBody *{
+  scrollbar-width:none !important;
+}
+.magBody::-webkit-scrollbar,
+.magPage::-webkit-scrollbar{
+  display:none !important;
+  width:0 !important;
+  height:0 !important;
+}
+
+.magBody{
+  overflow:visible !important;
+  max-height:none !important;
+  height:auto !important;
+  min-height:0 !important;
+  flex:0 0 auto !important;
+  width:100% !important;
+}
+
+/* Make the original cards compact enough to remain magazine-like
+   before the final automatic fit is applied. */
+.magBody{
+  font-size:clamp(10px,1.55vw,14px) !important;
+  line-height:1.45 !important;
+  padding:14px 16px !important;
+}
+.magBody p,
+.magBody li{
+  margin:4px 0 !important;
+  line-height:1.45 !important;
+}
+.magBody h1,
+.magBody h2,
+.magBody h3{
+  margin:7px 0 5px !important;
+  line-height:1.12 !important;
+}
+.magBody .card,
+.magBody .info-box,
+.magBody .boundary-box,
+.magBody .movie-card,
+.magBody .news-card,
+.magBody .tech-card{
+  padding:9px 10px !important;
+  margin:0 0 7px !important;
+}
+.magBody .grid{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:7px !important;
+}
+.magBody .timeline{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:7px !important;
+}
+.magBody .event-head{
+  padding:8px !important;
+}
+.magBody .event-title{
+  font-size:.9rem !important;
+  margin:4px 0 !important;
+}
+.magBody .event-detail{
+  font-size:.68rem !important;
+  line-height:1.35 !important;
+}
+.magBody .zodiac-wrap{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  gap:12px !important;
+}
+.magBody .zodiac-wheel{
+  width:min(250px,100%) !important;
+  margin:auto !important;
+}
+.magBody .moon-stage{
+  min-height:0 !important;
+  height:auto !important;
+}
+.magBody .historical-moon{
+  width:min(300px,58%) !important;
+  margin:0 auto 10px !important;
+}
+.magBody .music-player iframe{
+  height:160px !important;
+}
+.magBody .song-buttons{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:7px !important;
+}
+.magBody .song-btn{
+  padding:8px !important;
+  font-size:.72rem !important;
+}
+.magBody .tn-map{
+  width:140px !important;
+  height:180px !important;
+}
+.magBody .snapshot-clock{
+  font-size:clamp(2rem,6vw,5rem) !important;
+}
+.magBody .snapshot-grid{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:8px !important;
+}
+.magBody .snapshot-item{
+  padding:8px !important;
+}
+.magBody .price-bar{
+  height:5px !important;
+}
+.magBody br{
+  line-height:0 !important;
+}
+
+/* Header area inside each physical page. */
+.magKicker{
+  flex:0 0 auto !important;
+  margin-bottom:6px !important;
+  font-size:clamp(8px,1.2vw,12px) !important;
+  letter-spacing:2px !important;
+}
+.magTitle{
+  flex:0 0 auto !important;
+  font-size:clamp(25px,4.8vw,56px) !important;
+  line-height:.98 !important;
+  margin:0 0 6px !important;
+}
+.magIntro{
+  flex:0 0 auto !important;
+  font-size:clamp(9px,1.5vw,14px) !important;
+  line-height:1.4 !important;
+  margin:0 0 9px !important;
+  max-width:100% !important;
+}
+.magFooter{
+  position:absolute !important;
+  left:clamp(18px,5vw,58px) !important;
+  right:clamp(18px,5vw,58px) !important;
+  bottom:12px !important;
+  margin:0 !important;
+  z-index:10 !important;
+  font-size:8px !important;
+}
+
+/* Cover: never scroll, never add text on top of uploaded cover. */
+.magPage.cover .magInner{
+  display:none !important;
+}
+
+/* ---------- NAVIGATION ---------- */
+#magControls{
+  position:fixed !important;
+  left:50% !important;
+  bottom:max(8px,env(safe-area-inset-bottom)) !important;
+  transform:translateX(-50%) !important;
+  z-index:2147483000 !important;
+  pointer-events:auto !important;
+}
+#magHint{
+  top:max(7px,env(safe-area-inset-top)) !important;
+  z-index:2147483000 !important;
+}
+#pdfDownload{
+  z-index:2147483000 !important;
+}
+
+/* ---------- LOGIN: FIXED SCREEN, NO SCROLL ---------- */
+#birthdayGate{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100dvh !important;
+  max-width:none !important;
+  max-height:none !important;
+  padding:
+    max(10px,env(safe-area-inset-top))
+    max(10px,env(safe-area-inset-right))
+    max(10px,env(safe-area-inset-bottom))
+    max(10px,env(safe-area-inset-left)) !important;
+  overflow:hidden !important;
+  overscroll-behavior:none !important;
+  touch-action:manipulation !important;
+}
+.horror-card{
+  width:min(92vw,570px) !important;
+  max-width:570px !important;
+  max-height:calc(100dvh - 20px) !important;
+  overflow:hidden !important;
+  transform-origin:center center !important;
+}
+.horror-input{
+  height:48px !important;
+  min-height:48px !important;
+  max-height:48px !important;
+  font-size:16px !important; /* prevents mobile browser input zoom */
+  line-height:48px !important;
+  transform:none !important;
+  zoom:1 !important;
+}
+#enterCapsule{
+  height:50px !important;
+  min-height:50px !important;
+  max-height:50px !important;
+}
+@media(max-width:700px){
+  .magInner{
+    padding:
+      max(22px,env(safe-area-inset-top))
+      max(16px,env(safe-area-inset-right))
+      max(70px,env(safe-area-inset-bottom))
+      max(16px,env(safe-area-inset-left)) !important;
+  }
+  .magBody{
+    font-size:12px !important;
+    line-height:1.42 !important;
+  }
+  .magBody .grid,
+  .magBody .timeline{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .magBody .song-buttons{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .magBody .snapshot-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+@media(max-width:420px){
+  .magBody{
+    font-size:11px !important;
+  }
+  .magBody .grid,
+  .magBody .timeline{
+    gap:5px !important;
+  }
+  .magBody .card,
+  .magBody .info-box,
+  .magBody .boundary-box,
+  .magBody .movie-card,
+  .magBody .news-card,
+  .magBody .tech-card{
+    padding:7px 8px !important;
+  }
+  .magBody .zodiac-wrap{
+    gap:7px !important;
+  }
+}
+@media(max-width:700px) and (orientation:landscape){
+  .magInner{
+    padding:14px 22px 60px !important;
+  }
+  .magTitle{
+    font-size:clamp(24px,6vw,40px) !important;
+  }
+  .magBody{
+    font-size:10px !important;
+  }
+}
+
+/* Respect reduced-motion users. */
+@media(prefers-reduced-motion:reduce){
+  .magPage{transition:none !important;}
+}
+</style>
+
+
+<style id="smooth-mobile-page-hotfix">
+/* =========================================================
+   SMOOTH MOBILE MAGAZINE HOTFIX
+   - Never scroll inside a magazine page
+   - Avoid expensive blur/backdrop effects during page turns
+   - Keep pages GPU-friendly
+   ========================================================= */
+html, body {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  touch-action: pan-y !important;
+}
+
+#magBook {
+  overflow: hidden !important;
+  contain: layout paint size !important;
+  isolation: isolate;
+}
+
+.magPage {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  -webkit-overflow-scrolling: auto !important;
+  contain: layout paint style !important;
+  will-change: transform, opacity !important;
+  transition:
+    transform .28s cubic-bezier(.22,.61,.36,1),
+    opacity .18s linear !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+}
+
+.magPage::before {
+  will-change: transform;
+}
+
+.magInner {
+  overflow: hidden !important;
+  min-height: 0 !important;
+}
+
+.magBody {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+  -webkit-overflow-scrolling: auto !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.magBody::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+}
+
+.magPage.turn-forward {
+  transform: translate3d(-2%,0,0) rotateY(-78deg) !important;
+}
+
+.magPage.turn-back {
+  transform: translate3d(2%,0,0) rotateY(78deg) !important;
+}
+
+.magPage.flip-under,
+.magPage.active {
+  transform: translate3d(0,0,0) rotateY(0deg) !important;
+}
+
+@media (max-width:700px) {
+  .magPage {
+    width: 100vw !important;
+    height: 100dvh !important;
+    border-radius: 0 !important;
+  }
+
+  .magInner {
+    padding:
+      max(22px, env(safe-area-inset-top))
+      18px
+      max(58px, env(safe-area-inset-bottom) + 46px) !important;
+  }
+
+  #magControls {
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .magPage {
+    transition: none !important;
+  }
+}
+</style>
+
+
+<style id="final-15-page-css">
+html,body{
+  width:100%;
+  height:100%;
+  margin:0!important;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+}
+
+body{
+  touch-action:pan-y;
+}
+
+#magBook{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  overflow:hidden!important;
+}
+
+.magPage{
+  position:absolute!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  max-width:none!important;
+  max-height:none!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  contain:layout paint style!important;
+}
+
+.magPage .magInner{
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:none!important;
+  overflow:visible!important;
+  transform-origin:top center!important;
+}
+
+.magPage .magBody,
+.magPage .magContent,
+.magPage .content{
+  overflow:visible!important;
+  max-height:none!important;
+}
+
+/* The page itself never scrolls. */
+.magPage::-webkit-scrollbar,
+.magBody::-webkit-scrollbar,
+.magContent::-webkit-scrollbar{
+  width:0!important;
+  height:0!important;
+  display:none!important;
+}
+
+@media(max-width:700px){
+  #magBook,.magPage{
+    width:100vw!important;
+    height:100dvh!important;
+    border-radius:0!important;
+  }
+}
+
+/* Do not let the page-turn animation create a second scrolling layer. */
+.magPage{
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+  will-change:transform,opacity;
+}
+</style>
+
+
+<style id="exact-15-page-print">
+@media print{
+  @page{
+    size: 390px 844px;
+    margin:0;
+  }
+
+  html,body{
+    width:390px!important;
+    height:auto!important;
+    overflow:visible!important;
+  }
+
+  #magBook{
+    position:static!important;
+    width:390px!important;
+    height:auto!important;
+    overflow:visible!important;
+  }
+
+  .magPage{
+    position:relative!important;
+    display:block!important;
+    width:390px!important;
+    height:844px!important;
+    min-height:844px!important;
+    max-height:844px!important;
+    overflow:hidden!important;
+    page-break-after:always!important;
+    break-after:page!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+  }
+
+  .magPage:nth-of-type(n+16){
+    display:none!important;
+  }
+
+  .magPage:last-of-type{
+    page-break-after:auto!important;
+    break-after:auto!important;
+  }
+
+  #magControls,
+  #pageIndicator,
+  .no-print,
+  button{
+    display:none!important;
+  }
+}
+</style>
+
+
+<style id="final-15-page-pdf-export">
+@media print {
+  @page { size: 390px 844px; margin: 0; }
+  html.pdf-export-mode, body.pdf-export-mode {
+    width: 390px !important; height: auto !important; overflow: visible !important;
+  }
+  body.pdf-export-mode #magBook {
+    position: static !important; width: 390px !important; height: auto !important;
+    overflow: visible !important; transform: none !important; perspective: none !important;
+  }
+  body.pdf-export-mode .magPage {
+    display: block !important; visibility: visible !important; opacity: 1 !important;
+    position: relative !important; inset: auto !important; transform: none !important;
+    width: 390px !important; height: 844px !important;
+    min-height: 844px !important; max-height: 844px !important;
+    overflow: hidden !important; margin: 0 !important; padding: 0 !important;
+    page-break-before: always !important; page-break-after: always !important;
+    break-before: page !important; break-after: page !important;
+    page-break-inside: avoid !important; break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+  }
+  body.pdf-export-mode .magPage:first-child { page-break-before: auto !important; break-before: auto !important; }
+  body.pdf-export-mode .magPage:nth-of-type(n+16) { display: none !important; }
+  body.pdf-export-mode .magPage:last-child { page-break-after: auto !important; break-after: auto !important; }
+  body.pdf-export-mode #magControls,
+  body.pdf-export-mode #magHint,
+  body.pdf-export-mode #pdfDownload,
+  body.pdf-export-mode #pdfNotice { display: none !important; }
+}
+</style>
 </head>
 
 <body class="login-locked">
@@ -1054,13 +1670,8 @@ html.app-fullscreen .magPage {
 
   // Mobile fallback: a real user touch can unlock fullscreen on browsers
   // that don't expose fullscreen through the login transition.
-  document.addEventListener('touchend', function(){
-    if (window.innerWidth <= 700 &&
-        !document.fullscreenElement &&
-        !document.webkitFullscreenElement) {
-      enterMobileFullscreen();
-    }
-  }, {once:true, passive:true});
+  /* Do not trigger fullscreen just because the user touches an input.
+     Fullscreen is requested only after successful login. */
 
 })();
 </script>
@@ -2859,9 +3470,41 @@ GATHERED BY CHATGPT • DESIGNED BY GV
   const footer = document.querySelector("footer");
   if (footer) sources.push(["friendship", footer]);
 
+  /*
+    The source document contains 13 natural sections after removing the old
+    Top News page. For the final 15-page magazine, preserve every existing
+    word/content item but split two dense sections into independent physical
+    sheets. This changes page boundaries only; it does not duplicate or
+    invent magazine content.
+  */
+  function splitSource(id, src, splitSelector) {
+    const children = Array.from(src.querySelectorAll(splitSelector));
+    if (children.length < 2) return null;
+    const mid = Math.ceil(children.length / 2);
+    const a = src.cloneNode(false);
+    const b = src.cloneNode(false);
+    children.forEach((node, index) => (index < mid ? a : b).appendChild(node.cloneNode(true)));
+    return [[id + "-a", a], [id + "-b", b]];
+  }
+
+  const expandedSources = [];
+  sources.forEach(([id, src]) => {
+    if (id === "timeline") {
+      const parts = splitSource(id, src, ".timeline > *, .event");
+      if (parts) { expandedSources.push(...parts); return; }
+    }
+    if (id === "kollywood") {
+      const parts = splitSource(id, src, ".movie-card, .card");
+      if (parts) { expandedSources.push(...parts); return; }
+    }
+    expandedSources.push([id, src]);
+  });
+
+  /* Exactly 15 physical magazine pages. */
+  while (expandedSources.length > 15) expandedSources.pop();
   const pages = [];
 
-  sources.forEach(([id, src], i) => {
+  expandedSources.forEach(([id, src], i) => {
     const page = document.createElement("article");
     page.className = "magPage";
     page.dataset.id = id;
@@ -2986,9 +3629,44 @@ GATHERED BY CHATGPT • DESIGNED BY GV
   document.body.appendChild(pdfNotice);
 
   pdfButton.addEventListener("click", () => {
+    const exportPages = Array.from(document.querySelectorAll(".magPage")).slice(0, 15);
+    if (exportPages.length !== 15) {
+      alert("PDF export requires exactly 15 magazine pages. Found " + exportPages.length + ".");
+      return;
+    }
+
+    document.documentElement.classList.add("pdf-export-mode");
+    document.body.classList.add("pdf-export-mode");
+
+    exportPages.forEach((page) => {
+      page.style.setProperty("display", "block", "important");
+      page.style.setProperty("visibility", "visible", "important");
+      page.style.setProperty("opacity", "1", "important");
+      page.style.setProperty("position", "relative", "important");
+      page.style.setProperty("transform", "none", "important");
+    });
+
     pdfNotice.style.display = "block";
     window.setTimeout(() => { pdfNotice.style.display = "none"; }, 5000);
-    window.setTimeout(() => window.print(), 120);
+
+    /* Give Chrome two rendering frames to lay out ALL 15 sheets. */
+    requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
+  });
+
+  window.addEventListener("afterprint", () => {
+    document.documentElement.classList.remove("pdf-export-mode");
+    document.body.classList.remove("pdf-export-mode");
+    pages.forEach((page, index) => {
+      page.style.visibility = index === current ? "visible" : "hidden";
+      page.style.removeProperty("display");
+      page.style.removeProperty("opacity");
+      page.style.removeProperty("position");
+      page.style.removeProperty("transform");
+    });
+    pages.forEach((page, index) => {
+      if (index === current) page.classList.add("active");
+      else page.classList.remove("active", "turn-forward", "turn-back", "flip-under");
+    });
   });
 
   let current = 0;
@@ -3010,29 +3688,34 @@ GATHERED BY CHATGPT • DESIGNED BY GV
     const oldPage = pages[current];
     const newPage = pages[nextIndex];
 
-    // Only keep the two sheets involved in the flip live. This avoids
-    // browser repaint/reflow work across the whole magazine.
-    pages.forEach((page, index) => {
-      page.classList.remove("active", "turn-forward", "turn-back", "flip-under");
-      page.style.visibility = (index === current || index === nextIndex) ? "visible" : "hidden";
-    });
+    oldPage.classList.remove("active", "turn-forward", "turn-back", "flip-under");
+    newPage.classList.remove("active", "turn-forward", "turn-back", "flip-under");
 
+    /* Only two sheets participate in the animation. */
     newPage.classList.add("flip-under");
     oldPage.classList.add(direction > 0 ? "turn-forward" : "turn-back");
 
-    // Destination is already rendered underneath before the old sheet moves.
-    newPage.classList.add("active");
+    requestAnimationFrame(() => {
+      newPage.classList.add("active");
+    });
+
     current = nextIndex;
     updateControls();
 
     window.setTimeout(() => {
+      oldPage.classList.remove("turn-forward", "turn-back");
+      newPage.classList.remove("flip-under");
+      newPage.classList.add("active");
+
+      /* Ensure every non-current page stays completely inert. */
       pages.forEach((page, index) => {
-        page.classList.remove("active", "turn-forward", "turn-back", "flip-under");
-        page.style.visibility = index === current ? "visible" : "hidden";
+        if(index !== current && page !== oldPage){
+          page.classList.remove("active", "turn-forward", "turn-back", "flip-under");
+        }
       });
-      pages[current].classList.add("active");
+
       busy = false;
-    }, 700);
+    }, 300);
   }
 
   pages.forEach((page, index) => {
@@ -3060,31 +3743,27 @@ GATHERED BY CHATGPT • DESIGNED BY GV
 
   let sx = 0;
   let sy = 0;
+  let trackingSwipe = false;
 
-  book.addEventListener(
-    "touchstart",
-    e => {
-      sx = e.touches[0].clientX;
-      sy = e.touches[0].clientY;
-    },
-    { passive:true }
-  );
+  book.addEventListener("touchstart", e => {
+    if (busy || !e.touches.length) return;
+    sx = e.touches[0].clientX;
+    sy = e.touches[0].clientY;
+    trackingSwipe = true;
+  }, {passive:true});
 
-  book.addEventListener(
-    "touchend",
-    e => {
-      const dx = e.changedTouches[0].clientX - sx;
-      const dy = e.changedTouches[0].clientY - sy;
+  book.addEventListener("touchend", e => {
+    if (!trackingSwipe || busy || !e.changedTouches.length) return;
+    trackingSwipe = false;
 
-      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) {
-        render(
-          current + (dx < 0 ? 1 : -1),
-          dx < 0 ? 1 : -1
-        );
-      }
-    },
-    { passive:true }
-  );
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+
+    /* Horizontal gesture only. One swipe = exactly one page. */
+    if (Math.abs(dx) >= 55 && Math.abs(dx) > Math.abs(dy) * 1.15) {
+      render(current + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+    }
+  }, {passive:true});
 
   book.addEventListener("click", e => {
     if (
@@ -3123,5 +3802,128 @@ GATHERED BY CHATGPT • DESIGNED BY GV
   };
 })();
 </script>
+
+
+
+
+<script id="final-15-page-controller">
+(function(){
+  /*
+   FINAL MOBILE MAGAZINE RULES
+
+   1. The magazine contains exactly 15 logical pages.
+   2. Page 01 supplies ONLY the physical sheet ratio/dimensions.
+   3. Every page independently fits its own content.
+   4. No page gets Page 01's content height, typography, or layout.
+   5. No page is internally scrollable.
+  */
+
+  const MAX_PAGES = 15;
+
+  function getPages(){
+    return Array.from(document.querySelectorAll('.magPage')).slice(0, MAX_PAGES);
+  }
+
+  function fitPage(page){
+    if(!page || page.classList.contains('cover')) return;
+
+    const inner = page.querySelector('.magInner');
+    if(!inner) return;
+
+    /* Reset ONLY this page before measuring it. */
+    inner.style.transform = 'none';
+    inner.style.width = '100%';
+    inner.style.height = 'auto';
+
+    const pageW = page.clientWidth || window.innerWidth;
+    const pageH = page.clientHeight || window.innerHeight;
+
+    const pad = 8;
+    const naturalW = Math.max(1, inner.scrollWidth);
+    const naturalH = Math.max(
+      1,
+      inner.scrollHeight,
+      inner.getBoundingClientRect().height
+    );
+
+    const scaleX = (pageW - pad * 2) / naturalW;
+    const scaleY = (pageH - pad * 2) / naturalH;
+
+    let scale = Math.min(1, scaleX, scaleY);
+    scale = Math.max(.42, scale);
+
+    inner.style.transformOrigin = 'top center';
+    inner.style.transform = 'scale(' + scale.toFixed(4) + ')';
+    inner.dataset.fitScale = scale.toFixed(4);
+  }
+
+  function fitAll(){
+    const pages = getPages();
+
+    /* Physical size is common; CONTENT measurement is per-page. */
+    pages.forEach((page, i) => {
+      if(i === 0) return;
+      requestAnimationFrame(() => fitPage(page));
+    });
+  }
+
+  function enforce15(){
+    const pages = Array.from(document.querySelectorAll('.magPage'));
+    pages.forEach((page, index) => {
+      if(index >= MAX_PAGES){
+        page.remove();
+      }
+    });
+  }
+
+  function init(){
+    enforce15();
+
+    const pages = getPages();
+    if(!pages.length) return;
+
+    /* Page 01 defines only the sheet size, never content sizing. */
+    const sheet = pages[0];
+    document.documentElement.style.setProperty(
+      '--mag-sheet-ratio',
+      ((sheet.clientWidth || window.innerWidth) /
+       Math.max(1, sheet.clientHeight || window.innerHeight)).toFixed(5)
+    );
+
+    fitAll();
+
+    if(document.fonts && document.fonts.ready){
+      document.fonts.ready.then(() => setTimeout(fitAll, 80));
+    }
+
+    document.querySelectorAll('.magPage img').forEach(img => {
+      if(!img.complete){
+        img.addEventListener('load', () => setTimeout(fitAll, 50), {
+          once:true,
+          passive:true
+        });
+      }
+    });
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(fitAll, 120);
+    }, {passive:true});
+
+    window.addEventListener('orientationchange', () => {
+      setTimeout(fitAll, 150);
+      setTimeout(fitAll, 500);
+    }, {passive:true});
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init, {once:true});
+  }else{
+    init();
+  }
+})();
+</script>
+
 </body>
 </html>
