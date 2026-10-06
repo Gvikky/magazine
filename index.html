@@ -3438,6 +3438,7 @@ GATHERED BY CHATGPT • DESIGNED BY GV
     technology:"TECHNOLOGY",
     news:"WORLD NEWS",
     archive:"ARCHIVE",
+    birthday:"BIRTHDAY WISH",
     friendship:"FRIENDSHIP"
   };
 
@@ -3450,58 +3451,103 @@ GATHERED BY CHATGPT • DESIGNED BY GV
   const hero = document.querySelector("header.hero");
   if (hero) sources.push(["hero", hero]);
 
-  /*
-    PAGE 14 REMOVED:
-    The original generated page 14 was the "Top News" section.
-    It is intentionally excluded here.
-  */
-  const REMOVED_PAGE_ID = "news";
+  // EXACT 15-PAGE SOURCE MAP.
+  // Nothing is cloned from Page 1. Every entry below is an independent
+  // source section from the original document.
+  const namedSections = Array.from(document.querySelectorAll("section[id]"));
+  namedSections.forEach(section => {
+    if (section.id !== "news") sources.push([section.id, section]);
+  });
 
-  document.querySelectorAll("section[id]").forEach(section => {
-    if (section.id !== REMOVED_PAGE_ID) {
-      sources.push([section.id, section]);
+  // The first anonymous section is a historical ticker/archive section.
+  // Its ticker intentionally contains two identical loops; keep only one
+  // loop so the magazine itself never repeats archive content.
+  const anonymousSections = Array.from(document.querySelectorAll("section:not([id])"));
+  if (anonymousSections[0]) {
+    const archive = anonymousSections[0].cloneNode(true);
+    const ticker = archive.querySelector(".ticker");
+    if (ticker) {
+      const items = Array.from(ticker.children);
+      const seen = new Set();
+      items.forEach(item => {
+        const key = item.textContent.trim();
+        if (seen.has(key)) item.remove();
+        else seen.add(key);
+      });
     }
-  });
-
-  document.querySelectorAll("section:not([id])").forEach(section => {
-    sources.push(["archive", section]);
-  });
-
-  const footer = document.querySelector("footer");
-  if (footer) sources.push(["friendship", footer]);
-
-  /*
-    The source document contains 13 natural sections after removing the old
-    Top News page. For the final 15-page magazine, preserve every existing
-    word/content item but split two dense sections into independent physical
-    sheets. This changes page boundaries only; it does not duplicate or
-    invent magazine content.
-  */
-  function splitSource(id, src, splitSelector) {
-    const children = Array.from(src.querySelectorAll(splitSelector));
-    if (children.length < 2) return null;
-    const mid = Math.ceil(children.length / 2);
-    const a = src.cloneNode(false);
-    const b = src.cloneNode(false);
-    children.forEach((node, index) => (index < mid ? a : b).appendChild(node.cloneNode(true)));
-    return [[id + "-a", a], [id + "-b", b]];
+    sources.push(["archive", archive]);
   }
 
-  const expandedSources = [];
-  sources.forEach(([id, src]) => {
-    if (id === "timeline") {
-      const parts = splitSource(id, src, ".timeline > *, .event");
-      if (parts) { expandedSources.push(...parts); return; }
-    }
-    if (id === "kollywood") {
-      const parts = splitSource(id, src, ".movie-card, .card");
-      if (parts) { expandedSources.push(...parts); return; }
-    }
-    expandedSources.push([id, src]);
-  });
+  // The final anonymous section contains the birthday/friendship writing.
+  // Split the EXISTING content into two separate physical magazine pages;
+  // no text is duplicated.
+  const finalSection = anonymousSections[1];
+  if (finalSection) {
+    const originalCard = finalSection.querySelector(".friendship-page");
+    const originalTitle = finalSection.querySelector(".section-title");
 
-  /* Exactly 15 physical magazine pages. */
-  while (expandedSources.length > 15) expandedSources.pop();
+    function makeEndingPage(id, heading, subtitle, childIndexes) {
+      const pageSource = document.createElement("section");
+      pageSource.style.cssText = "background:#090705;min-height:auto;";
+
+      const frame = document.createElement("div");
+      frame.className = "section-frame";
+
+      const title = originalTitle ? originalTitle.cloneNode(true) : document.createElement("div");
+      title.classList.add("section-title");
+      const number = title.querySelector(".number");
+      const h2 = title.querySelector("h2");
+      const p = title.querySelector("p");
+      if (number) number.textContent = heading;
+      if (h2) h2.textContent = id === "birthday" ? "Birthday Wish" : "Friendship";
+      if (p) p.textContent = subtitle;
+
+      const card = originalCard ? originalCard.cloneNode(false) : document.createElement("div");
+      card.className = "card friendship-page";
+      if (originalCard) {
+        const children = Array.from(originalCard.children);
+        childIndexes.forEach(index => {
+          if (children[index]) card.appendChild(children[index].cloneNode(true));
+        });
+      }
+
+      frame.append(title, card);
+      pageSource.appendChild(frame);
+      return [id, pageSource];
+    }
+
+    // Existing birthday material: title, wish paragraph and the first rules.
+    sources.push(makeEndingPage(
+      "birthday",
+      "BIRTHDAY EDITION",
+      "A birthday wish written with the same sarcasm and warmth already in the original page.",
+      [0,1,2,3]
+    ));
+
+    // Existing friendship material: remaining rules, closing message and sign-off.
+    sources.push(makeEndingPage(
+      "friendship",
+      "FRIENDSHIP EDITION",
+      "No deep meaning. No emotional background music. Just friendship.",
+      [4,5,6]
+    ));
+
+    // Keep the original footer words on the final Friendship page instead of
+    // creating an unwanted 16th page.
+    const originalFooter = document.querySelector("footer");
+    if (originalFooter) {
+      sources[sources.length - 1][1].appendChild(originalFooter.cloneNode(true));
+    }
+  }
+
+  // The footer is supporting text, not a separate page. It belongs to the
+  // final Friendship page so the magazine remains exactly 15 pages.
+  if (sources.length !== 15) {
+    console.error("15-page source map error:", sources.length, sources.map(x => x[0]));
+  }
+
+  const expandedSources = sources.slice(0, 15);
+  
   const pages = [];
 
   expandedSources.forEach(([id, src], i) => {
@@ -3656,12 +3702,72 @@ GATHERED BY CHATGPT • DESIGNED BY GV
   window.addEventListener("afterprint", () => {
     document.documentElement.classList.remove("pdf-export-mode");
     document.body.classList.remove("pdf-export-mode");
-    
+    pages.forEach((page, index) => {
+      page.style.removeProperty("visibility");
+      page.style.removeProperty("display");
       page.style.removeProperty("opacity");
       page.style.removeProperty("position");
       page.style.removeProperty("transform");
     });
-    
+    pages.forEach((page, index) => {
+      if (index === current) page.classList.add("active");
+      else page.classList.remove("active", "turn-forward", "turn-back", "flip-under");
+    });
+  });
+
+  let current = 0;
+  let busy = false;
+
+  function updateControls() {
+    document.getElementById("magCount").textContent =
+      `PAGE ${String(current + 1).padStart(2,"0")} / ${String(pages.length).padStart(2,"0")}`;
+
+    document.getElementById("prev").disabled = current === 0;
+    document.getElementById("next").disabled = current === pages.length - 1;
+  }
+
+  function render(nextIndex, direction) {
+    if (busy || nextIndex < 0 || nextIndex >= pages.length || nextIndex === current) return;
+
+    busy = true;
+
+    const oldPage = pages[current];
+    const newPage = pages[nextIndex];
+
+    oldPage.classList.remove("active", "turn-forward", "turn-back", "flip-under");
+    newPage.classList.remove("active", "turn-forward", "turn-back", "flip-under");
+
+    /* Only two sheets participate in the animation. */
+    newPage.classList.add("flip-under");
+    oldPage.classList.add(direction > 0 ? "turn-forward" : "turn-back");
+
+    requestAnimationFrame(() => {
+      newPage.classList.add("active");
+    });
+
+    current = nextIndex;
+    updateControls();
+
+    window.setTimeout(() => {
+      oldPage.classList.remove("turn-forward", "turn-back");
+      newPage.classList.remove("flip-under");
+      newPage.classList.add("active");
+
+      /* Ensure every non-current page stays completely inert. */
+      pages.forEach((page, index) => {
+        if(index !== current && page !== oldPage){
+          page.classList.remove("active", "turn-forward", "turn-back", "flip-under");
+        }
+      });
+
+      busy = false;
+    }, 300);
+  }
+
+  pages.forEach((page) => {
+    page.style.removeProperty("visibility");
+    page.classList.remove("active", "turn-forward", "turn-back", "flip-under");
+  });
 
   pages[0].classList.add("active");
   updateControls();
@@ -3864,47 +3970,6 @@ GATHERED BY CHATGPT • DESIGNED BY GV
     init();
   }
 })();
-</script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const pages = document.querySelectorAll(".magPage");
-  let current = 0;
-
-  if(pages.length !== 15){
-    console.warn("Pages found:", pages.length);
-  }
-
-  function show(i){
-    if(i < 0 || i >= pages.length) return;
-
-    pages[current].classList.remove("active");
-    pages[i].classList.add("active");
-    current = i;
-  }
-
-  document.getElementById("nextBtn")?.addEventListener("click", ()=>show(current+1));
-  document.getElementById("prevBtn")?.addEventListener("click", ()=>show(current-1));
-
-  let sx=0;
-  document.addEventListener("touchstart", e=> sx = e.touches[0].clientX);
-  document.addEventListener("touchend", e=>{
-    let dx = e.changedTouches[0].clientX - sx;
-    if(dx < -50) show(current+1);
-    if(dx > 50) show(current-1);
-  });
-
-  document.getElementById("pdfDownload")?.addEventListener("click", ()=>{
-    pages.forEach(p=>p.classList.add("active"));
-    window.print();
-    setTimeout(()=>{
-      pages.forEach(p=>p.classList.remove("active"));
-      pages[current].classList.add("active");
-    },500);
-  });
-
-});
 </script>
 
 </body>
