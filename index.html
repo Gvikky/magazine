@@ -1508,14 +1508,14 @@ body{
 <style id="final-15-page-pdf-export">
 @media print {
   @page { size: 390px 844px; margin: 0; }
-  html.pdf-export-mode, body.pdf-export-mode {
+  html.legacy-pdf-export-mode, body.legacy-pdf-export-mode {
     width: 390px !important; height: auto !important; overflow: visible !important;
   }
   body.pdf-export-mode #magBook {
     position: static !important; width: 390px !important; height: auto !important;
     overflow: visible !important; transform: none !important; perspective: none !important;
   }
-  body.pdf-export-mode .magPage {
+  body.legacy-pdf-export-mode .magPage {
     display: block !important; visibility: visible !important; opacity: 1 !important;
     position: relative !important; inset: auto !important; transform: none !important;
     width: 390px !important; height: 844px !important;
@@ -1526,15 +1526,85 @@ body{
     page-break-inside: avoid !important; break-inside: avoid !important;
     -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
   }
-  body.pdf-export-mode .magPage:first-child { page-break-before: auto !important; break-before: auto !important; }
-  body.pdf-export-mode .magPage:nth-of-type(n+16) { display: none !important; }
-  body.pdf-export-mode .magPage:last-child { page-break-after: auto !important; break-after: auto !important; }
-  body.pdf-export-mode #magControls,
+  body.legacy-pdf-export-mode .magPage:first-child { page-break-before: auto !important; break-before: auto !important; }
+  body.legacy-pdf-export-mode .magPage:nth-of-type(n+16) { display: none !important; }
+  body.legacy-pdf-export-mode .magPage:last-child { page-break-after: auto !important; break-after: auto !important; }
+  body.legacy-pdf-export-mode #magControls,
   body.pdf-export-mode #magHint,
   body.pdf-export-mode #pdfDownload,
   body.pdf-export-mode #pdfNotice { display: none !important; }
 }
 </style>
+
+<style id="final-fit-all-content-fix">
+/* =========================================================
+   FINAL PAGE-FIT FIX
+   Every magazine sheet is a fixed, non-scrollable page.
+   Content is made compact before scaling so all text stays
+   inside its own page instead of overflowing/cropping.
+   ========================================================= */
+.magPage:not(.cover) .magInner{
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+.magPage:not(.cover) .magBody{
+  font-size:clamp(9px,1.18vw,11.5px)!important;
+  line-height:1.28!important;
+  padding:8px 10px!important;
+}
+.magPage:not(.cover) .magBody p,
+.magPage:not(.cover) .magBody li{
+  margin:2px 0!important;
+  line-height:1.28!important;
+}
+.magPage:not(.cover) .magBody h1,
+.magPage:not(.cover) .magBody h2,
+.magPage:not(.cover) .magBody h3{
+  margin:4px 0 3px!important;
+  line-height:1.05!important;
+}
+.magPage:not(.cover) .magBody .card,
+.magPage:not(.cover) .magBody .info-box,
+.magPage:not(.cover) .magBody .boundary-box,
+.magPage:not(.cover) .magBody .movie-card,
+.magPage:not(.cover) .magBody .news-card,
+.magPage:not(.cover) .magBody .tech-card{
+  padding:6px 8px!important;
+  margin:0 0 4px!important;
+}
+.magPage:not(.cover) .magKicker{font-size:8px!important;margin-bottom:3px!important;}
+.magPage:not(.cover) .magTitle{font-size:clamp(20px,3.5vw,38px)!important;line-height:.94!important;margin:0 0 4px!important;}
+.magPage:not(.cover) .magIntro{font-size:9px!important;line-height:1.2!important;margin:0 0 5px!important;}
+.magPage:not(.cover) .magFooter{font-size:7px!important;bottom:7px!important;}
+.magPage:not(.cover) .magBody .grid,
+.magPage:not(.cover) .magBody .timeline{gap:4px!important;}
+.magPage:not(.cover) .magBody .event-head{padding:5px!important;}
+.magPage:not(.cover) .magBody .event-title{font-size:.78rem!important;margin:2px 0!important;}
+.magPage:not(.cover) .magBody .event-detail{font-size:.60rem!important;line-height:1.2!important;}
+.magPage:not(.cover) .magBody .song-buttons{gap:4px!important;}
+.magPage:not(.cover) .magBody .song-btn{padding:5px!important;font-size:.62rem!important;}
+.magPage:not(.cover) .magBody .snapshot-grid{gap:4px!important;}
+.magPage:not(.cover) .magBody .snapshot-item{padding:5px!important;}
+.magPage:not(.cover) .magBody .music-player iframe{height:120px!important;}
+.magPage:not(.cover) .magBody .historical-moon{width:min(220px,48%)!important;margin:0 auto 5px!important;}
+.magPage:not(.cover) .magBody .zodiac-wrap{gap:7px!important;}
+.magPage:not(.cover) .magBody .zodiac-wheel{width:min(190px,100%)!important;}
+
+/* Never make the uploaded cover black in print/export. */
+.magPage.cover{background:#fff!important;}
+.magPage.cover::before{
+  display:block!important;
+  content:""!important;
+  opacity:1!important;
+  visibility:visible!important;
+  background-image:var(--photo)!important;
+  background-size:100% 100%!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  filter:none!important;
+}
+</style>
+
 </head>
 
 <body class="login-locked">
@@ -3675,28 +3745,231 @@ GATHERED BY CHATGPT • DESIGNED BY GV
   document.body.appendChild(pdfNotice);
 
   pdfButton.addEventListener("click", () => {
+    /* =========================================================
+       RELIABLE 15-PAGE PDF EXPORT
+       Uses the browser's built-in PDF engine, but creates a
+       dedicated 15-sheet print document inside the SAME page.
+       No CDN, no external PDF library, no one-page renderer.
+       Background images are converted to real <img> elements so
+       they are included even when "Background graphics" is off.
+       ========================================================= */
     const exportPages = Array.from(document.querySelectorAll(".magPage")).slice(0, 15);
     if (exportPages.length !== 15) {
       alert("PDF export requires exactly 15 magazine pages. Found " + exportPages.length + ".");
       return;
     }
+    if (document.getElementById("pdfPrintRoot")) return;
 
-    document.documentElement.classList.add("pdf-export-mode");
-    document.body.classList.add("pdf-export-mode");
+    const oldText = pdfButton.textContent;
+    pdfButton.textContent = "OPENING PDF…";
+    pdfButton.disabled = true;
 
-    exportPages.forEach((page) => {
-      page.style.setProperty("display", "block", "important");
-      page.style.setProperty("visibility", "visible", "important");
-      page.style.setProperty("opacity", "1", "important");
-      page.style.setProperty("position", "relative", "important");
-      page.style.setProperty("transform", "none", "important");
+    const printRoot = document.createElement("div");
+    printRoot.id = "pdfPrintRoot";
+
+    const printStyle = document.createElement("style");
+    printStyle.id = "pdfPrintStyle";
+    printStyle.textContent = `
+      @media screen {
+        #pdfPrintRoot { display:none!important; }
+      }
+      @media print {
+        @page { size: A5 portrait; margin:0; }
+        html, body {
+          width:148mm!important;
+          min-width:148mm!important;
+          margin:0!important;
+          padding:0!important;
+          background:#fff!important;
+          overflow:visible!important;
+          -webkit-print-color-adjust:exact!important;
+          print-color-adjust:exact!important;
+        }
+        body > *:not(#pdfPrintRoot) { display:none!important; }
+        #pdfPrintRoot {
+          display:block!important;
+          width:148mm!important;
+          margin:0!important;
+          padding:0!important;
+          background:#fff!important;
+        }
+        .pdfSheet {
+          position:relative!important;
+          display:block!important;
+          width:148mm!important;
+          height:210mm!important;
+          min-width:148mm!important;
+          max-width:148mm!important;
+          min-height:210mm!important;
+          max-height:210mm!important;
+          margin:0!important;
+          padding:0!important;
+          overflow:hidden!important;
+          page-break-before:always!important;
+          page-break-after:always!important;
+          break-before:page!important;
+          break-after:page!important;
+          page-break-inside:avoid!important;
+          break-inside:avoid!important;
+          background:#fff!important;
+        }
+        .pdfSheet:first-child {
+          page-break-before:auto!important;
+          break-before:auto!important;
+        }
+        .pdfSheet:last-child {
+          page-break-after:auto!important;
+          break-after:auto!important;
+        }
+        .pdfSheet .pdfBg {
+          position:absolute!important;
+          inset:0!important;
+          width:100%!important;
+          height:100%!important;
+          object-fit:cover!important;
+          display:block!important;
+          z-index:0!important;
+        }
+        .pdfSheet .pdfBg.bg2 {
+          opacity:.42!important;
+        }
+        .pdfSheet .pdfShade {
+          position:absolute!important;
+          inset:0!important;
+          z-index:1!important;
+          background:linear-gradient(180deg,rgba(8,6,5,.48),rgba(8,6,5,.20) 42%,rgba(8,6,5,.55))!important;
+        }
+        .pdfSheet .magInner {
+          position:absolute!important;
+          inset:0!important;
+          z-index:2!important;
+          width:100%!important;
+          height:100%!important;
+          box-sizing:border-box!important;
+          padding:10mm 8mm 14mm!important;
+          overflow:hidden!important;
+          transform:none!important;
+          background:transparent!important;
+        }
+        .pdfSheet .magBody {
+          overflow:hidden!important;
+          max-height:none!important;
+          height:auto!important;
+          font-size:9px!important;
+          line-height:1.22!important;
+          padding:4px 6px!important;
+        }
+        .pdfSheet .magBody p,
+        .pdfSheet .magBody li { margin:1.5px 0!important; line-height:1.22!important; }
+        .pdfSheet .magBody h1,
+        .pdfSheet .magBody h2,
+        .pdfSheet .magBody h3 { margin:3px 0 2px!important; line-height:1.02!important; }
+        .pdfSheet .magBody .card,
+        .pdfSheet .magBody .info-box,
+        .pdfSheet .magBody .boundary-box,
+        .pdfSheet .magBody .movie-card,
+        .pdfSheet .magBody .news-card,
+        .pdfSheet .magBody .tech-card { padding:4px 6px!important; margin:0 0 3px!important; }
+        .pdfSheet .magTitle { font-size:28px!important; line-height:.94!important; margin:0 0 3px!important; }
+        .pdfSheet .magIntro { font-size:8px!important; line-height:1.15!important; margin:0 0 4px!important; }
+        .pdfSheet .magKicker { font-size:7px!important; margin-bottom:2px!important; }
+        .pdfSheet .magFooter { font-size:6px!important; bottom:3mm!important; }
+        .pdfSheet.cover .magInner { display:none!important; }
+        .pdfSheet.cover .pdfShade { display:none!important; }
+        .pdfSheet img { max-width:100%!important; }
+        #birthdayGate,#magControls,#magHint,#pdfDownload,#pdfNotice { display:none!important; }
+      }
+    `;
+    document.head.appendChild(printStyle);
+
+    const extractUrl = value => {
+      if (!value) return "";
+      const m = String(value).match(/url\(["']?(.*?)["']?\)/);
+      return m ? m[1] : String(value);
+    };
+
+    exportPages.forEach((source, index) => {
+      const sheet = document.createElement("section");
+      sheet.className = "pdfSheet" + (source.classList.contains("cover") ? " cover" : "");
+
+      const photo = extractUrl(source.style.getPropertyValue("--photo"));
+      const photo2 = extractUrl(source.style.getPropertyValue("--photo2"));
+
+      if (photo) {
+        const bg = document.createElement("img");
+        bg.className = "pdfBg";
+        bg.src = photo;
+        bg.alt = "";
+        bg.decoding = "sync";
+        sheet.appendChild(bg);
+      }
+      if (photo2 && !source.classList.contains("cover")) {
+        const bg2 = document.createElement("img");
+        bg2.className = "pdfBg bg2";
+        bg2.src = photo2;
+        bg2.alt = "";
+        bg2.decoding = "sync";
+        sheet.appendChild(bg2);
+      }
+      if (!source.classList.contains("cover")) {
+        const shade = document.createElement("div");
+        shade.className = "pdfShade";
+        sheet.appendChild(shade);
+      }
+
+      const inner = source.querySelector(".magInner");
+      if (inner && !source.classList.contains("cover")) {
+        const clone = inner.cloneNode(true);
+        clone.classList.remove("active","turn-forward","turn-back","flip-under");
+        clone.style.cssText = "";
+        clone.querySelectorAll("script").forEach(x => x.remove());
+        sheet.appendChild(clone);
+      }
+
+      printRoot.appendChild(sheet);
     });
 
-    pdfNotice.style.display = "block";
-    window.setTimeout(() => { pdfNotice.style.display = "none"; }, 5000);
+    document.body.appendChild(printRoot);
 
-    /* Give Chrome two rendering frames to lay out ALL 15 sheets. */
-    requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
+    const waitForImages = async () => {
+      const imgs = Array.from(printRoot.querySelectorAll("img"));
+      await Promise.all(imgs.map(img => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise(resolve => {
+          const done = () => { img.removeEventListener("load",done); img.removeEventListener("error",done); resolve(); };
+          img.addEventListener("load",done,{once:true});
+          img.addEventListener("error",done,{once:true});
+          setTimeout(done,12000);
+        });
+      }));
+      if (document.fonts && document.fonts.ready) {
+        try { await document.fonts.ready; } catch(e) {}
+      }
+      await new Promise(r => setTimeout(r, 500));
+      pdfNotice.style.display = "block";
+      pdfNotice.textContent = "15-page PDF print copy ready. Choose Save as PDF — all 15 pages will be included.";
+      window.print();
+    };
+
+    waitForImages().catch(err => {
+      console.error("PDF preparation failed", err);
+      if (printRoot) printRoot.remove();
+      if (printStyle) printStyle.remove();
+      pdfButton.disabled = false;
+      pdfButton.textContent = oldText;
+    });
+
+    const cleanup = () => {
+      const root = document.getElementById("pdfPrintRoot");
+      const style = document.getElementById("pdfPrintStyle");
+      if (root) root.remove();
+      if (style) style.remove();
+      pdfNotice.style.display = "none";
+      pdfButton.disabled = false;
+      pdfButton.textContent = oldText;
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup);
   });
 
   window.addEventListener("afterprint", () => {
@@ -3873,37 +4146,46 @@ GATHERED BY CHATGPT • DESIGNED BY GV
 
   function fitPage(page){
     if(!page || page.classList.contains('cover')) return;
-
     const inner = page.querySelector('.magInner');
+    const body = page.querySelector('.magBody');
     if(!inner) return;
 
-    /* Reset ONLY this page before measuring it. */
     inner.style.transform = 'none';
     inner.style.width = '100%';
     inner.style.height = 'auto';
 
+    if(body){
+      body.style.fontSize = '';
+      body.style.lineHeight = '';
+    }
+
     const pageW = page.clientWidth || window.innerWidth;
     const pageH = page.clientHeight || window.innerHeight;
+    const pad = 10;
 
-    const pad = 8;
+    let scale = 1;
+    for(let pass=0; pass<5; pass++){
+      const naturalW = Math.max(1, inner.scrollWidth);
+      const naturalH = Math.max(1, inner.scrollHeight, inner.getBoundingClientRect().height);
+      const scaleX = (pageW-pad*2)/naturalW;
+      const scaleY = (pageH-pad*2)/naturalH;
+      scale = Math.min(1, scaleX, scaleY);
+      if(scale >= .78 || !body) break;
+      const currentPx = parseFloat(getComputedStyle(body).fontSize) || 10;
+      const nextPx = Math.max(7.5, currentPx * Math.max(.84, scale/.90));
+      body.style.fontSize = nextPx.toFixed(2) + 'px';
+      body.style.lineHeight = '1.22';
+    }
+
     const naturalW = Math.max(1, inner.scrollWidth);
-    const naturalH = Math.max(
-      1,
-      inner.scrollHeight,
-      inner.getBoundingClientRect().height
-    );
-
-    const scaleX = (pageW - pad * 2) / naturalW;
-    const scaleY = (pageH - pad * 2) / naturalH;
-
-    let scale = Math.min(1, scaleX, scaleY);
-    scale = Math.max(.42, scale);
+    const naturalH = Math.max(1, inner.scrollHeight, inner.getBoundingClientRect().height);
+    scale = Math.min(1, (pageW-pad*2)/naturalW, (pageH-pad*2)/naturalH);
+    scale = Math.max(.55, scale);
 
     inner.style.transformOrigin = 'top center';
     inner.style.transform = 'scale(' + scale.toFixed(4) + ')';
     inner.dataset.fitScale = scale.toFixed(4);
   }
-
   function fitAll(){
     const pages = getPages();
 
