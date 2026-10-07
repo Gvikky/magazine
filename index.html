@@ -1605,6 +1605,18 @@ body{
 }
 </style>
 
+<style id="login-full-viewport-fit-fix">
+/* LOGIN ONLY: keep the original design, but scale the complete card
+   proportionally when the browser viewport is shorter than the card.
+   This prevents the bottom of the login from being cropped. */
+#birthdayGate{
+  overflow:hidden !important;
+}
+#birthdayGate .horror-card{
+  transform-origin:center center !important;
+  will-change:transform;
+}
+</style>
 </head>
 
 <body class="login-locked">
@@ -4476,6 +4488,47 @@ body.login-locked #birthdayGate *{
     document.addEventListener('magazineFitComplete',applyZoom);
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
+})();
+</script>
+<script id="login-full-viewport-fit-js">
+(function(){
+  'use strict';
+  const gate=document.getElementById('birthdayGate');
+  const card=document.getElementById('horrorCard');
+  if(!gate || !card) return;
+
+  function fitLogin(){
+    if(gate.classList.contains('hidden')) return;
+
+    /* Measure the original card with no transform. */
+    card.style.transform='none';
+    const rect=card.getBoundingClientRect();
+    const vw=Math.max(1,window.innerWidth);
+    const vh=Math.max(1,window.innerHeight);
+    const horizontalSpace=Math.max(1,vw-24);
+    const verticalSpace=Math.max(1,vh-24);
+
+    const scale=Math.min(1, horizontalSpace/rect.width, verticalSpace/rect.height);
+    card.style.transform='scale('+Math.max(0.50,scale).toFixed(4)+')';
+  }
+
+  function scheduleFit(){
+    requestAnimationFrame(()=>requestAnimationFrame(fitLogin));
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',scheduleFit,{once:true});
+  }else{
+    scheduleFit();
+  }
+  window.addEventListener('resize',scheduleFit,{passive:true});
+  window.addEventListener('orientationchange',()=>{
+    setTimeout(scheduleFit,100);
+    setTimeout(scheduleFit,400);
+  },{passive:true});
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(()=>setTimeout(scheduleFit,80));
+  }
 })();
 </script>
 </body>
