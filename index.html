@@ -3720,9 +3720,12 @@ GATHERED BY CHATGPT • DESIGNED BY GV
   controls.id = "magControls";
   controls.innerHTML = `
     <button class="magBtn" id="prev" aria-label="Previous page">‹</button>
+    <button class="magBtn magZoomBtn" id="zoomOut" aria-label="Zoom out">−</button>
     <div id="magCount">
       PAGE 01 / ${String(pages.length).padStart(2,"0")}
     </div>
+    <button class="magBtn magZoomBtn" id="zoomIn" aria-label="Zoom in">+</button>
+    <button class="magBtn magZoomReset" id="zoomReset" aria-label="Reset zoom">100%</button>
     <button class="magBtn" id="next" aria-label="Next page">›</button>
   `;
   document.body.appendChild(controls);
@@ -4034,6 +4037,7 @@ GATHERED BY CHATGPT • DESIGNED BY GV
       });
 
       busy = false;
+      if(window.magazineApplyZoom) window.magazineApplyZoom();
     }, 300);
   }
 
@@ -4126,6 +4130,107 @@ GATHERED BY CHATGPT • DESIGNED BY GV
 
 
 
+<style id="magazine-zoom-controls">
+  /* MAGAZINE ONLY — login page is intentionally untouched */
+  #magControls{
+    flex-wrap:nowrap !important;
+    gap:8px !important;
+  }
+  #magControls .magZoomBtn{
+    width:38px !important;
+    height:38px !important;
+    font-size:22px !important;
+    line-height:1 !important;
+  }
+  #magControls .magZoomReset{
+    width:auto !important;
+    min-width:58px !important;
+    padding:0 8px !important;
+    font-size:9px !important;
+    letter-spacing:.5px !important;
+  }
+  #magControls .magZoomBtn:disabled,
+  #magControls .magZoomReset:disabled{
+    opacity:.35 !important;
+  }
+  @media(max-width:700px){
+    #magControls{gap:5px !important; padding:5px 7px !important;}
+    #magControls .magZoomBtn{
+      width:36px !important;
+      height:36px !important;
+      flex:0 0 36px !important;
+    }
+    #magControls .magZoomReset{
+      min-width:52px !important;
+      height:36px !important;
+      flex:0 0 auto !important;
+      font-size:8px !important;
+    }
+  }
+</style>
+
+<script id="magazine-zoom-controller">
+(function(){
+  /* This controller affects only .magPage. The login gate is not modified. */
+  const MIN_ZOOM = 0.75;
+  const MAX_ZOOM = 1.75;
+  const STEP = 0.10;
+  let zoom = 1;
+
+  function magazinePages(){
+    return Array.from(document.querySelectorAll('.magPage')).slice(0,15);
+  }
+
+  function applyZoom(){
+    magazinePages().forEach(page => {
+      const inner = page.querySelector('.magInner');
+      if(!inner || page.classList.contains('cover')) return;
+      const fit = parseFloat(inner.dataset.fitScale || '1') || 1;
+      inner.style.transformOrigin = 'top center';
+      inner.style.transform = 'scale(' + (fit * zoom).toFixed(4) + ')';
+    });
+
+    const label = document.getElementById('zoomReset');
+    if(label) label.textContent = Math.round(zoom * 100) + '%';
+
+    const out = document.getElementById('zoomOut');
+    const inc = document.getElementById('zoomIn');
+    if(out) out.disabled = zoom <= MIN_ZOOM;
+    if(inc) inc.disabled = zoom >= MAX_ZOOM;
+  }
+
+  function setZoom(value){
+    zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
+    applyZoom();
+  }
+
+  document.addEventListener('click', function(e){
+    if(e.target.closest('#zoomIn')){
+      e.preventDefault();
+      e.stopPropagation();
+      setZoom(zoom + STEP);
+      return;
+    }
+    if(e.target.closest('#zoomOut')){
+      e.preventDefault();
+      e.stopPropagation();
+      setZoom(zoom - STEP);
+      return;
+    }
+    if(e.target.closest('#zoomReset')){
+      e.preventDefault();
+      e.stopPropagation();
+      setZoom(1);
+    }
+  }, true);
+
+  // Re-apply the selected zoom after the existing per-page fit calculation.
+  window.addEventListener('magazineFitComplete', applyZoom);
+
+  window.magazineApplyZoom = applyZoom;
+})();
+</script>
+
 <script id="final-15-page-controller">
 (function(){
   /*
@@ -4180,7 +4285,10 @@ GATHERED BY CHATGPT • DESIGNED BY GV
     const naturalW = Math.max(1, inner.scrollWidth);
     const naturalH = Math.max(1, inner.scrollHeight, inner.getBoundingClientRect().height);
     scale = Math.min(1, (pageW-pad*2)/naturalW, (pageH-pad*2)/naturalH);
-    scale = Math.max(.55, scale);
+
+    // Never crop a page at the default 100% view. If a page is content-heavy,
+    // it is allowed to scale below 55% so every item remains inside the sheet.
+    scale = Math.max(0.25, scale);
 
     inner.style.transformOrigin = 'top center';
     inner.style.transform = 'scale(' + scale.toFixed(4) + ')';
@@ -4190,9 +4298,22 @@ GATHERED BY CHATGPT • DESIGNED BY GV
     const pages = getPages();
 
     /* Physical size is common; CONTENT measurement is per-page. */
+    let remaining = Math.max(0, pages.length - 1);
+    if(!remaining){
+      window.dispatchEvent(new Event('magazineFitComplete'));
+      return;
+    }
+
     pages.forEach((page, i) => {
       if(i === 0) return;
-      requestAnimationFrame(() => fitPage(page));
+      requestAnimationFrame(() => {
+        fitPage(page);
+        remaining--;
+        if(remaining === 0){
+          window.dispatchEvent(new Event('magazineFitComplete'));
+          if(window.magazineApplyZoom) window.magazineApplyZoom();
+        }
+      });
     });
   }
 
