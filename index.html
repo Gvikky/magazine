@@ -3720,12 +3720,9 @@ GATHERED BY CHATGPT • DESIGNED BY GV
   controls.id = "magControls";
   controls.innerHTML = `
     <button class="magBtn" id="prev" aria-label="Previous page">‹</button>
-    <button class="magBtn magZoomBtn" id="zoomOut" aria-label="Zoom out">−</button>
     <div id="magCount">
       PAGE 01 / ${String(pages.length).padStart(2,"0")}
     </div>
-    <button class="magBtn magZoomBtn" id="zoomIn" aria-label="Zoom in">+</button>
-    <button class="magBtn magZoomReset" id="zoomReset" aria-label="Reset zoom">100%</button>
     <button class="magBtn" id="next" aria-label="Next page">›</button>
   `;
   document.body.appendChild(controls);
@@ -4037,7 +4034,6 @@ GATHERED BY CHATGPT • DESIGNED BY GV
       });
 
       busy = false;
-      if(window.magazineApplyZoom) window.magazineApplyZoom();
     }, 300);
   }
 
@@ -4130,107 +4126,6 @@ GATHERED BY CHATGPT • DESIGNED BY GV
 
 
 
-<style id="magazine-zoom-controls">
-  /* MAGAZINE ONLY — login page is intentionally untouched */
-  #magControls{
-    flex-wrap:nowrap !important;
-    gap:8px !important;
-  }
-  #magControls .magZoomBtn{
-    width:38px !important;
-    height:38px !important;
-    font-size:22px !important;
-    line-height:1 !important;
-  }
-  #magControls .magZoomReset{
-    width:auto !important;
-    min-width:58px !important;
-    padding:0 8px !important;
-    font-size:9px !important;
-    letter-spacing:.5px !important;
-  }
-  #magControls .magZoomBtn:disabled,
-  #magControls .magZoomReset:disabled{
-    opacity:.35 !important;
-  }
-  @media(max-width:700px){
-    #magControls{gap:5px !important; padding:5px 7px !important;}
-    #magControls .magZoomBtn{
-      width:36px !important;
-      height:36px !important;
-      flex:0 0 36px !important;
-    }
-    #magControls .magZoomReset{
-      min-width:52px !important;
-      height:36px !important;
-      flex:0 0 auto !important;
-      font-size:8px !important;
-    }
-  }
-</style>
-
-<script id="magazine-zoom-controller">
-(function(){
-  /* This controller affects only .magPage. The login gate is not modified. */
-  const MIN_ZOOM = 0.75;
-  const MAX_ZOOM = 1.75;
-  const STEP = 0.10;
-  let zoom = 1;
-
-  function magazinePages(){
-    return Array.from(document.querySelectorAll('.magPage')).slice(0,15);
-  }
-
-  function applyZoom(){
-    magazinePages().forEach(page => {
-      const inner = page.querySelector('.magInner');
-      if(!inner || page.classList.contains('cover')) return;
-      const fit = parseFloat(inner.dataset.fitScale || '1') || 1;
-      inner.style.transformOrigin = 'top center';
-      inner.style.transform = 'scale(' + (fit * zoom).toFixed(4) + ')';
-    });
-
-    const label = document.getElementById('zoomReset');
-    if(label) label.textContent = Math.round(zoom * 100) + '%';
-
-    const out = document.getElementById('zoomOut');
-    const inc = document.getElementById('zoomIn');
-    if(out) out.disabled = zoom <= MIN_ZOOM;
-    if(inc) inc.disabled = zoom >= MAX_ZOOM;
-  }
-
-  function setZoom(value){
-    zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
-    applyZoom();
-  }
-
-  document.addEventListener('click', function(e){
-    if(e.target.closest('#zoomIn')){
-      e.preventDefault();
-      e.stopPropagation();
-      setZoom(zoom + STEP);
-      return;
-    }
-    if(e.target.closest('#zoomOut')){
-      e.preventDefault();
-      e.stopPropagation();
-      setZoom(zoom - STEP);
-      return;
-    }
-    if(e.target.closest('#zoomReset')){
-      e.preventDefault();
-      e.stopPropagation();
-      setZoom(1);
-    }
-  }, true);
-
-  // Re-apply the selected zoom after the existing per-page fit calculation.
-  window.addEventListener('magazineFitComplete', applyZoom);
-
-  window.magazineApplyZoom = applyZoom;
-})();
-</script>
-
 <script id="final-15-page-controller">
 (function(){
   /*
@@ -4285,10 +4180,7 @@ GATHERED BY CHATGPT • DESIGNED BY GV
     const naturalW = Math.max(1, inner.scrollWidth);
     const naturalH = Math.max(1, inner.scrollHeight, inner.getBoundingClientRect().height);
     scale = Math.min(1, (pageW-pad*2)/naturalW, (pageH-pad*2)/naturalH);
-
-    // Never crop a page at the default 100% view. If a page is content-heavy,
-    // it is allowed to scale below 55% so every item remains inside the sheet.
-    scale = Math.max(0.25, scale);
+    scale = Math.max(.55, scale);
 
     inner.style.transformOrigin = 'top center';
     inner.style.transform = 'scale(' + scale.toFixed(4) + ')';
@@ -4298,22 +4190,9 @@ GATHERED BY CHATGPT • DESIGNED BY GV
     const pages = getPages();
 
     /* Physical size is common; CONTENT measurement is per-page. */
-    let remaining = Math.max(0, pages.length - 1);
-    if(!remaining){
-      window.dispatchEvent(new Event('magazineFitComplete'));
-      return;
-    }
-
     pages.forEach((page, i) => {
       if(i === 0) return;
-      requestAnimationFrame(() => {
-        fitPage(page);
-        remaining--;
-        if(remaining === 0){
-          window.dispatchEvent(new Event('magazineFitComplete'));
-          if(window.magazineApplyZoom) window.magazineApplyZoom();
-        }
-      });
+      requestAnimationFrame(() => fitPage(page));
     });
   }
 
@@ -4375,5 +4254,229 @@ GATHERED BY CHATGPT • DESIGNED BY GV
 })();
 </script>
 
+
+<style id="gv-final-magazine-fit-zoom-fix">
+/* =========================================================
+   MAGAZINE-ONLY FINAL FIX
+   - Login is untouched by these rules.
+   - Every magazine page is a fixed viewport: no inner scroll.
+   - Content is measured per page and scaled until it fits.
+   - Zoom changes the visible sheet only; it never changes login.
+   ========================================================= */
+#magBook .magPage:not(.cover){
+  overflow:hidden !important;
+  overflow-y:hidden !important;
+  overflow-x:hidden !important;
+}
+#magBook .magPage:not(.cover) .magInner{
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+}
+#magBook .magPage:not(.cover) .magBody{
+  overflow:hidden !important;
+  max-height:none !important;
+}
+
+/* Zoom controls */
+#magControls{
+  gap:7px !important;
+  padding:7px 9px !important;
+}
+#magControls .zoomBtn{
+  width:34px !important;
+  height:34px !important;
+  border-radius:50% !important;
+  border:1px solid #d9bd80 !important;
+  background:#221b15 !important;
+  color:#f3dca8 !important;
+  font-size:20px !important;
+  line-height:1 !important;
+  cursor:pointer !important;
+}
+#magControls .zoomReset{
+  min-width:52px !important;
+  height:34px !important;
+  border-radius:17px !important;
+  border:1px solid #d9bd80 !important;
+  background:#221b15 !important;
+  color:#f3dca8 !important;
+  font:700 10px "Cinzel",serif !important;
+  cursor:pointer !important;
+}
+#magControls .zoomBtn:active,#magControls .zoomReset:active{transform:scale(.94)}
+
+@media(max-width:700px){
+  #magControls{gap:5px !important;padding:6px 7px !important;}
+  #magControls .zoomBtn{width:32px !important;height:32px !important;font-size:19px !important;}
+  #magControls .zoomReset{min-width:48px !important;height:32px !important;font-size:9px !important;}
+}
+
+/* Restore the original login dimensions/behavior. These selectors are
+   intentionally scoped to the login and override only the later magazine
+   fullscreen rules that had changed its size. */
+#birthdayGate{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:999999 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:auto !important;
+  height:auto !important;
+  max-width:none !important;
+  max-height:none !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  overscroll-behavior:auto !important;
+  touch-action:auto !important;
+}
+.horror-card{
+  width:min(570px,92vw) !important;
+  max-width:none !important;
+  max-height:none !important;
+  overflow:visible !important;
+  padding:38px 34px 32px !important;
+  transform-origin:center center !important;
+}
+.horror-input{
+  height:48px !important;
+  min-height:48px !important;
+  max-height:48px !important;
+  font-size:14px !important;
+  line-height:normal !important;
+  transform:none !important;
+  zoom:1 !important;
+}
+#enterCapsule{
+  height:50px !important;
+  min-height:50px !important;
+  max-height:50px !important;
+}
+@media(max-width:600px){
+  .horror-card{
+    width:min(570px,92vw) !important;
+    padding:28px 20px !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+}
+
+/* Do not let magazine fit rules affect the login gate, even while locked. */
+body.login-locked #birthdayGate,
+body.login-locked #birthdayGate *{
+  box-sizing:border-box;
+}
+</style>
+<script id="gv-final-magazine-fit-zoom-js">
+(function(){
+  'use strict';
+  const MAX_PAGES = 15;
+  const affected = new Set([4,5,6,8,9,11]); // zero-based: pages 5,6,7,9,10,12
+  let zoom = 1;
+  const MIN_ZOOM = 0.70;
+  const MAX_ZOOM = 2.00;
+  const STEP = 0.10;
+
+  function pages(){ return Array.from(document.querySelectorAll('#magBook .magPage')).slice(0,MAX_PAGES); }
+
+  function fitPage(page, index){
+    if(!page || index===0 || page.classList.contains('cover')) return;
+    const inner=page.querySelector('.magInner');
+    const body=page.querySelector('.magBody');
+    if(!inner) return;
+
+    inner.style.transform='none';
+    inner.style.width='100%';
+    inner.style.height='auto';
+    inner.style.maxHeight='none';
+    inner.style.marginLeft='0';
+    inner.style.marginRight='0';
+    if(body){ body.style.overflow='hidden'; body.style.maxHeight='none'; }
+
+    /* Give the browser a clean layout before measuring. */
+    const pageW=page.clientWidth||window.innerWidth;
+    const pageH=page.clientHeight||window.innerHeight;
+    const pad=8;
+
+    let scale=1;
+    for(let pass=0;pass<8;pass++){
+      const w=Math.max(inner.scrollWidth, inner.getBoundingClientRect().width,1);
+      const h=Math.max(inner.scrollHeight, inner.getBoundingClientRect().height,1);
+      const sx=(pageW-pad*2)/w;
+      const sy=(pageH-pad*2)/h;
+      scale=Math.min(1,sx,sy);
+      if(scale>=0.995) break;
+      if(!body) break;
+      const px=parseFloat(getComputedStyle(body).fontSize)||10;
+      const next=Math.max(6.5,px*0.90);
+      if(Math.abs(next-px)<0.05) break;
+      body.style.fontSize=next.toFixed(2)+'px';
+      body.style.lineHeight='1.16';
+    }
+
+    const w=Math.max(inner.scrollWidth,inner.getBoundingClientRect().width,1);
+    const h=Math.max(inner.scrollHeight,inner.getBoundingClientRect().height,1);
+    scale=Math.min(1,(pageW-pad*2)/w,(pageH-pad*2)/h);
+    scale=Math.max(0.20,scale);
+    inner.style.transformOrigin='top center';
+    inner.style.transform='scale('+scale.toFixed(5)+')';
+    inner.dataset.fitScale=String(scale);
+    inner.dataset.fitIndex=String(index);
+  }
+
+  function fitAll(){
+    const ps=pages();
+    ps.forEach((p,i)=>fitPage(p,i));
+    applyZoom();
+  }
+
+  function applyZoom(){
+    const ps=pages();
+    ps.forEach((page,i)=>{
+      if(i===0) return;
+      const inner=page.querySelector('.magInner');
+      if(!inner) return;
+      const fit=parseFloat(inner.dataset.fitScale)||1;
+      const finalScale=Math.max(0.20,Math.min(2.0,fit*zoom));
+      inner.style.transformOrigin='top center';
+      inner.style.transform='scale('+finalScale.toFixed(5)+')';
+      inner.dataset.zoomScale=String(finalScale);
+    });
+    const reset=document.getElementById('zoomReset');
+    if(reset) reset.textContent=Math.round(zoom*100)+'%';
+  }
+
+  function buildZoomControls(){
+    const controls=document.getElementById('magControls');
+    if(!controls || document.getElementById('zoomIn')) return;
+    const next=document.getElementById('next');
+    const plus=document.createElement('button');
+    plus.id='zoomIn'; plus.className='zoomBtn'; plus.type='button'; plus.textContent='+'; plus.title='Zoom in';
+    const minus=document.createElement('button');
+    minus.id='zoomOut'; minus.className='zoomBtn'; minus.type='button'; minus.textContent='−'; minus.title='Zoom out';
+    const reset=document.createElement('button');
+    reset.id='zoomReset'; reset.className='zoomReset'; reset.type='button'; reset.textContent='100%'; reset.title='Reset zoom';
+    controls.insertBefore(minus,next);
+    controls.insertBefore(reset,next);
+    controls.insertBefore(plus,next);
+    minus.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();zoom=Math.max(MIN_ZOOM,+(zoom-STEP).toFixed(2));applyZoom();});
+    plus.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();zoom=Math.min(MAX_ZOOM,+(zoom+STEP).toFixed(2));applyZoom();});
+    reset.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();zoom=1;applyZoom();});
+  }
+
+  function init(){
+    buildZoomControls();
+    fitAll();
+    if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>setTimeout(fitAll,100));
+    document.querySelectorAll('#magBook img').forEach(img=>{
+      if(!img.complete) img.addEventListener('load',()=>setTimeout(fitAll,80),{once:true});
+    });
+    window.addEventListener('resize',()=>setTimeout(fitAll,120),{passive:true});
+    window.addEventListener('orientationchange',()=>{setTimeout(fitAll,180);setTimeout(fitAll,500);},{passive:true});
+    document.addEventListener('magazineFitComplete',applyZoom);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
+})();
+</script>
 </body>
 </html>
