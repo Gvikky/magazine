@@ -4490,44 +4490,187 @@ body.login-locked #birthdayGate *{
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
 })();
 </script>
+
+<style id="login-android-laptop-final">
+/* =========================================================
+   LOGIN FINAL RESPONSIVE FIT — ANDROID + LAPTOP CHROME
+   Login only. Magazine styles are not modified here.
+   CSS zoom makes Chrome lay out the whole card at the reduced
+   size, preventing bottom/side cropping on short viewports.
+   ========================================================= */
+#birthdayGate{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100vh !important;
+  height:100dvh !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  max-width:none !important;
+  max-height:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+}
+
+#birthdayGate .horror-card{
+  box-sizing:border-box !important;
+  flex:0 0 auto !important;
+  width:min(570px, calc(100vw - 28px)) !important;
+  max-width:570px !important;
+  max-height:none !important;
+  height:auto !important;
+  overflow:visible !important;
+  margin:0 !important;
+  transform:none !important;
+  transform-origin:center center !important;
+  zoom:1 !important;
+}
+
+/* Android: keep the input at 16px so Chrome does not zoom the whole page
+   when the user taps a field. */
+@media (max-width:700px){
+  #birthdayGate{
+    height:100dvh !important;
+    padding:8px !important;
+  }
+  #birthdayGate .horror-card{
+    width:min(570px, calc(100vw - 16px)) !important;
+    padding:28px 20px !important;
+  }
+  #birthdayGate .horror-input{
+    font-size:16px !important;
+  }
+}
+
+/* Very short laptop windows / Android landscape. */
+@media (max-height:760px){
+  #birthdayGate .horror-card{
+    padding-top:22px !important;
+    padding-bottom:18px !important;
+  }
+  #birthdayGate .horror-warning{margin-bottom:8px !important;}
+  #birthdayGate .horror-title{margin-bottom:9px !important;}
+  #birthdayGate .horror-subtitle{margin-bottom:12px !important;}
+  #birthdayGate .horror-line{margin-bottom:12px !important;}
+  #birthdayGate .wish-box{gap:5px !important;margin-bottom:13px !important;}
+  #birthdayGate .wish{padding:6px 10px !important;line-height:1.25 !important;}
+  #birthdayGate .sarcasm{margin-bottom:14px !important;line-height:1.35 !important;}
+  #birthdayGate .horror-form{gap:7px !important;}
+  #birthdayGate .horror-input{height:42px !important;min-height:42px !important;max-height:42px !important;}
+  #birthdayGate #enterCapsule{height:44px !important;min-height:44px !important;max-height:44px !important;margin-top:4px !important;}
+  #birthdayGate .horror-note{margin-top:8px !important;}
+}
+
+/* Extremely short laptop browser window. Compact the login before JS zooms it. */
+@media (max-height:620px){
+  #birthdayGate .horror-card{
+    padding:15px 18px 13px !important;
+  }
+  #birthdayGate .horror-warning{font-size:8px !important;letter-spacing:2px !important;margin-bottom:5px !important;}
+  #birthdayGate .horror-title{font-size:clamp(2.2rem,8vw,4.2rem) !important;margin-bottom:5px !important;}
+  #birthdayGate .horror-subtitle{font-size:1rem !important;margin-bottom:7px !important;}
+  #birthdayGate .horror-line{margin-bottom:7px !important;}
+  #birthdayGate .wish-box{margin-bottom:8px !important;}
+  #birthdayGate .wish{font-size:9px !important;padding:4px 8px !important;}
+  #birthdayGate .sarcasm{font-size:10px !important;margin-bottom:8px !important;}
+  #birthdayGate .horror-label{font-size:7px !important;}
+  #birthdayGate .horror-input{height:34px !important;min-height:34px !important;max-height:34px !important;padding:0 10px !important;}
+  #birthdayGate #enterCapsule{height:36px !important;min-height:36px !important;max-height:36px !important;}
+  #birthdayGate .horror-note{font-size:8px !important;margin-top:5px !important;}
+}
+
+/* If Android is landscape, use the available height, not a fixed desktop size. */
+@media (max-width:900px) and (orientation:landscape){
+  #birthdayGate .horror-card{
+    width:min(570px, calc(100vw - 18px)) !important;
+  }
+}
+</style>
+
 <script id="login-full-viewport-fit-js">
 (function(){
   'use strict';
-  const gate=document.getElementById('birthdayGate');
-  const card=document.getElementById('horrorCard');
+
+  const gate = document.getElementById('birthdayGate');
+  const card = document.getElementById('horrorCard');
   if(!gate || !card) return;
 
   function fitLogin(){
     if(gate.classList.contains('hidden')) return;
 
-    /* Measure the original card with no transform. */
-    card.style.transform='none';
-    const rect=card.getBoundingClientRect();
-    const vw=Math.max(1,window.innerWidth);
-    const vh=Math.max(1,window.innerHeight);
-    const horizontalSpace=Math.max(1,vw-24);
-    const verticalSpace=Math.max(1,vh-24);
+    /* Reset all previous fitting. */
+    card.style.zoom = '1';
+    card.style.transform = 'none';
 
-    const scale=Math.min(1, horizontalSpace/rect.width, verticalSpace/rect.height);
-    card.style.transform='scale('+Math.max(0.50,scale).toFixed(4)+')';
+    /* Let Chrome calculate the real, unscaled card dimensions. */
+    const rect = card.getBoundingClientRect();
+    const vw = Math.max(1, document.documentElement.clientWidth || window.innerWidth);
+    const vh = Math.max(1, document.documentElement.clientHeight || window.innerHeight);
+
+    const horizontalSpace = Math.max(1, vw - 18);
+    const verticalSpace = Math.max(1, vh - 18);
+
+    const widthScale = horizontalSpace / Math.max(1, rect.width);
+    const heightScale = verticalSpace / Math.max(1, rect.height);
+    let scale = Math.min(1, widthScale, heightScale);
+
+    /* Never allow a browser quirk to make the card smaller than necessary;
+       0.35 is only a safety floor for extremely tiny browser windows. */
+    scale = Math.max(0.35, Math.min(1, scale));
+
+    /* CSS zoom changes layout dimensions, so the entire card—including the
+       bottom button/note—is inside the viewport instead of merely looking
+       scaled while retaining the old overflowing layout. */
+    card.style.zoom = scale.toFixed(4);
+
+    /* A second measurement catches font loading / scrollbar changes. */
+    requestAnimationFrame(() => {
+      if(gate.classList.contains('hidden')) return;
+      const r2 = card.getBoundingClientRect();
+      const s2 = Math.min(
+        1,
+        horizontalSpace / Math.max(1, r2.width),
+        verticalSpace / Math.max(1, r2.height)
+      );
+      if(s2 < 0.995){
+        card.style.zoom = Math.max(0.35, scale * s2).toFixed(4);
+      }
+    });
   }
 
   function scheduleFit(){
-    requestAnimationFrame(()=>requestAnimationFrame(fitLogin));
+    requestAnimationFrame(() => requestAnimationFrame(fitLogin));
   }
 
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',scheduleFit,{once:true});
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', scheduleFit, {once:true});
   }else{
     scheduleFit();
   }
-  window.addEventListener('resize',scheduleFit,{passive:true});
-  window.addEventListener('orientationchange',()=>{
-    setTimeout(scheduleFit,100);
-    setTimeout(scheduleFit,400);
-  },{passive:true});
+
+  window.addEventListener('resize', scheduleFit, {passive:true});
+  window.addEventListener('orientationchange', () => {
+    setTimeout(scheduleFit, 80);
+    setTimeout(scheduleFit, 300);
+    setTimeout(scheduleFit, 700);
+  }, {passive:true});
+
   if(document.fonts && document.fonts.ready){
-    document.fonts.ready.then(()=>setTimeout(scheduleFit,80));
+    document.fonts.ready.then(() => {
+      setTimeout(scheduleFit, 50);
+      setTimeout(scheduleFit, 250);
+    });
+  }
+
+  /* Android Chrome can change the visual viewport when the keyboard opens.
+     Refit after the keyboard closes/opens without changing the login design. */
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', scheduleFit, {passive:true});
   }
 })();
 </script>
